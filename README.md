@@ -165,3 +165,37 @@ plugins; validate TDB1 and JenaText results on actual vocabularies; tune probes,
 heap and memory; test the real gateway/Skosmos path, browser challenges, RDF negotiation,
 CORS and client IP attribution; test termination, candidate activation, rollback and Velero
 restore on real storage. This foundation does not claim those tests have passed.
+
+## Secret scanning
+
+CI scans all fetched Git history on every push and pull request with Gitleaks
+8.30.1, a checksum-verified binary, and a commit-pinned checkout action. It uses
+only `contents: read`, does not persist checkout credentials, redacts detected
+values, and does not upload reports. Findings fail the job.
+
+For local scanning, install Gitleaks 8.21 or newer (the minimum for this config's
+rule allowlist syntax), then run from the repository root:
+
+```bash
+gitleaks git --redact --log-opts="--all" --config .gitleaks.toml .
+python3 tests/test_gitleaks.py
+```
+
+The equivalent legacy command remains supported by compatible versions:
+
+```bash
+gitleaks detect --source . --redact --log-opts="--all" --config .gitleaks.toml
+```
+
+History scanning covers locally available refs; fetch full history first when
+using a shallow clone. To check uncommitted files too, use
+`gitleaks dir --redact --config .gitleaks.toml .`.
+
+The config extends all default rules. Its only added exception applies to
+`generic-api-key` when the extracted value is exactly `ed25519-private-key-hex`
+**and** the path is exactly `chart/vocabs/values.yaml` or
+`tests/gateway/test_gateway.py`. This is a Kubernetes Secret field name, not key
+material. Tests generate temporary synthetic secrets and remove them on exit.
+The repository `.gitignore` excludes local environment secrets, private keys,
+certificates and kubeconfig files, while retaining `.env.example`; ignore rules
+do not protect secrets already tracked by Git.
