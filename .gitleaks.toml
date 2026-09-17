@@ -1,0 +1,15 @@
+title = "vocabs-platform secret scanning"
+
+[extend]
+useDefault = true
+
+# Gitleaks >= 8.21: inherit the rule and all its default detection settings.
+[[rules]]
+id = "generic-api-key"
+
+[[rules.allowlists]]
+description = "Kubernetes Secret field name, not signing-key material"
+condition = "AND"
+regexTarget = "secret"
+regexes = ['''^ed25519-private-key-hex$''']
+paths = ['''^chart/vocabs/values\.yaml$''', '''^tests/gateway/test_gateway\.py$''']
