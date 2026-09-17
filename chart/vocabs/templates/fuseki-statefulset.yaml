@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "vocabs.fullname" . }}-fuseki
+  labels:
+    {{- include "vocabs.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.commonAnnotations | nindent 4 }}
+spec:
+  replicas: {{ .Values.fuseki.replicas }}
+  serviceName: {{ include "vocabs.fullname" . }}-fuseki-headless
+  podManagementPolicy: OrderedReady
+  updateStrategy: {type: RollingUpdate}
+  selector:
+    matchLabels:
+      {{- include "vocabs.selector" . | nindent 6 }}
+      app.kubernetes.io/component: fuseki
+  template:
+    metadata:
+      labels:
+        {{- include "vocabs.selector" . | nindent 8 }}
+        app.kubernetes.io/component: fuseki
+      annotations:
+        {{- with .Values.fuseki.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/fuseki-configmap.yaml") . | sha256sum }}
+        vocabs.acdh.oeaw.ac.at/config-revision: {{ .Values.fuseki.config.revision | quote }}
+    spec:
+      serviceAccountName: {{ include "vocabs.sa" . }}
+      automountServiceAccountToken: false
+      imagePullSecrets: {{ toJson .Values.imagePullSecrets }}
+      securityContext:
+        {{- toYaml .Values.fuseki.podSecurityContext | nindent 8 }}
+      terminationGracePeriodSeconds: {{ .Values.fuseki.terminationGracePeriodSeconds }}
+      containers:
+        - name: fuseki
+          image: {{ include "vocabs.image" (dict "root" . "component" "fuseki" "image" .Values.fuseki.image) | quote }}
+          imagePullPolicy: {{ .Values.fuseki.image.pullPolicy }}
+          ports:
+            - {name: http, containerPort: 3030}
+          securityContext:
+            {{- toYaml .Values.fuseki.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.fuseki.resources | nindent 12 }}
+          args: ["--config=/config/assembler.ttl"]
+          env:
+            - name: EXPECTED_JENA_VERSION
+              value: {{ (include "vocabs.profile" . | fromYaml).jena.version | quote }}
+            - name: JAVA_TOOL_OPTIONS
+              value: {{ printf "-Xms%s -Xmx%s" .Values.fuseki.java.xms .Values.fuseki.java.xmx | quote }}
+          startupProbe:
+            httpGet:
+              path: {{ .Values.fuseki.startupProbe.path | quote }}
+              port: http
+            {{- toYaml (omit .Values.fuseki.startupProbe "path") | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.fuseki.readinessProbe.path | quote }}
+              port: http
+            {{- toYaml (omit .Values.fuseki.readinessProbe "path") | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.fuseki.livenessProbe.path | quote }}
+              port: http
+            {{- toYaml (omit .Values.fuseki.livenessProbe "path") | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /config/assembler.ttl
+              subPath: assembler.ttl
+              readOnly: true
+            - name: database
+              mountPath: {{ .Values.fuseki.persistence.mountPath }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ default (printf "%s-fuseki-config" (include "vocabs.fullname" .)) .Values.fuseki.config.existingConfigMap }}
+        - name: database
+          persistentVolumeClaim:
+            claimName: {{ .Values.data.activeClaim }}

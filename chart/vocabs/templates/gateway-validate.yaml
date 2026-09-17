@@ -1,0 +1,28 @@
+{{- if or .Values.gateway.enabled .Values.ingress.enabled .Values.global.publicUrl -}}
+{{- $public := include "vocabs.public" . | fromYaml -}}
+{{- if and .Values.ingress.enabled (and .Values.ingress.tls.enabled (ne $public.scheme "https")) }}{{ fail "Ingress TLS requires an https global.publicUrl" }}{{ end -}}
+{{- end -}}
+{{- if and .Values.ingress.enabled (not .Values.gateway.enabled) }}{{ fail "Public Ingress requires gateway.enabled=true; direct Skosmos ingress is prohibited" }}{{ end -}}
+{{- if .Values.gateway.enabled -}}
+{{- if not .Values.skosmos.enabled }}{{ fail "Gateway requires Skosmos to be enabled" }}{{ end -}}
+{{- if not .Values.gateway.anubis.enabled }}{{ fail "Gateway requires Anubis; an unprotected Nginx service is not supported" }}{{ end -}}
+{{- if ne (int .Values.gateway.replicas) 1 }}{{ fail "Gateway replicas must equal 1 with local Anubis bbolt/memory storage" }}{{ end -}}
+{{- if ne .Values.gateway.service.type "ClusterIP" }}{{ fail "Gateway Service must be ClusterIP" }}{{ end -}}
+{{- if ne .Values.gateway.anubis.target.url "http://127.0.0.1:8081" }}{{ fail "Anubis target must be localhost Nginx: http://127.0.0.1:8081" }}{{ end -}}
+{{- if and .Values.gateway.anubis.persistence.enabled (ne .Values.gateway.anubis.store.backend "bbolt") }}{{ fail "Anubis persistence requires the bbolt backend" }}{{ end -}}
+{{- if .Values.gateway.anubis.persistence.enabled -}}
+{{- $claim := default (printf "%s-gateway-state" (include "vocabs.fullname" .)) .Values.gateway.anubis.persistence.existingClaim -}}
+{{- if or (eq $claim .Values.data.activeClaim) (eq $claim .Values.imports.targetClaim) (eq $claim .Values.imports.source.pvc.existingClaim) }}{{ fail "Gateway state PVC must be separate from RDF data/import claims" }}{{ end -}}
+{{- range .Values.data.managedClaims -}}
+{{- if eq $claim .name }}{{ fail "Gateway state PVC must be separate from RDF data/import claims" }}{{ end -}}
+{{- end -}}
+{{- end -}}
+{{- $prefixes := dict -}}
+{{- range .Values.gateway.conceptResolver.namespaces }}{{ $_ := set $prefixes . true }}{{ end -}}
+{{- range .Values.gateway.externalRedirects -}}
+{{- if hasKey $prefixes .prefix }}{{ fail (printf "Duplicate or conflicting gateway redirect prefix: %s" .prefix) }}{{ end -}}
+{{- $_ := set $prefixes .prefix true -}}
+{{- end -}}
+{{- end -}}
+{{- if and .Values.swagger.ingress.enabled (not .Values.swagger.ingress.allowAnubisBypass) }}{{ fail "Separate Swagger Ingress bypasses Anubis; explicitly set swagger.ingress.allowAnubisBypass=true to acknowledge" }}{{ end -}}
+{{- if and .Values.ingress.enabled (not (trim .Values.gateway.anubis.signingKey.existingSecret)) }}{{ fail "Public Ingress requires gateway.anubis.signingKey.existingSecret: a persistent signing key keeps Anubis authentication cookies valid across restarts" }}{{ end -}}

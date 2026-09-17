@@ -1,0 +1,24 @@
+{{- $p := include "vocabs.profile" . | fromYaml -}}
+{{- if ne (int .Values.fuseki.replicas) 1 }}{{ fail "Fuseki replicas must equal 1: Jena/TDB is single-writer" }}{{ end -}}
+{{- if ne .Values.fuseki.service.type "ClusterIP" }}{{ fail "Fuseki Service must be ClusterIP" }}{{ end -}}
+{{- if or (ne .Values.varnish.server.service.type "ClusterIP") .Values.varnish.server.ingress.enabled .Values.varnish.server.hostNetwork }}{{ fail "Varnish must remain internal: ClusterIP, no Ingress, no hostNetwork" }}{{ end -}}
+{{- if .Values.varnish.server.networkPolicy.enabled }}{{ fail "Use parent networkPolicy settings; additive upstream policy may broaden access" }}{{ end -}}
+{{- $host := default (printf "%s-vocabs-fuseki" .Release.Name) .Values.global.vocabsFusekiHost -}}
+{{- if ne $host (printf "%s-fuseki" (include "vocabs.fullname" .)) }}{{ fail "global.vocabsFusekiHost must match generated Fuseki service name when name overrides are used" }}{{ end -}}
+{{- if ne (toString .Values.global.vocabsFusekiPort) (toString .Values.fuseki.service.port) }}{{ fail "global.vocabsFusekiPort must match fuseki.service.port" }}{{ end -}}
+{{- if ne (index .Values.varnish.server.podAnnotations "vocabs.acdh.oeaw.ac.at/data-revision") (printf "%s/%s" .Values.data.activeClaim .Values.data.revision) }}{{ fail "varnish.server.podAnnotations data-revision must equal data.activeClaim/data.revision to invalidate Varnish" }}{{ end -}}
+{{- if not .Values.compatibility.allowUnsupported -}}
+{{- if or (ne .Values.varnish.server.image.tag $p.varnish.version) (ne .Values.swagger.image.tag $p.swagger.version) }}{{ fail "Varnish/Swagger image overrides require compatibility.allowUnsupported=true" }}{{ end -}}
+{{- end -}}
+{{- if ne .Values.fuseki.image.tag .Values.imports.image.tag }}{{ fail "Runtime and importer manual tags must match" }}{{ end -}}
+{{- $names := dict -}}
+{{- range .Values.data.managedClaims -}}
+{{- if hasKey $names .name }}{{ fail "Duplicate managed PVC name" }}{{ end -}}
+{{- $_ := set $names .name true -}}
+{{- if not .retain }}{{ fail "Database PVC retain must be true; remove old claims explicitly" }}{{ end -}}
+{{- end -}}
+{{- if .Values.imports.job.enabled -}}
+{{- if eq (required "imports.targetClaim is required" .Values.imports.targetClaim) .Values.data.activeClaim }}{{ fail "Offline import into the active Fuseki database PVC is prohibited. Choose a separate candidate PVC." }}{{ end -}}
+{{- $source := required "imports.source.pvc.existingClaim is required" .Values.imports.source.pvc.existingClaim -}}
+{{- if or (eq $source .Values.imports.targetClaim) (eq $source .Values.data.activeClaim) }}{{ fail "Import source must be separate from active and candidate database claims" }}{{ end -}}
+{{- end -}}

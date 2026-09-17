@@ -1,0 +1,6 @@
+# Overlay onto the SAME environment values; prefer render-only Job + kubectl create.
+imports:
+  job: {enabled: true, name: candidate-r002, backoffLimit: 0}
+  targetClaim: vocabs-data-r002
+  source:
+    pvc: {existingClaim: vocabs-import, file: /data/example.rdf}

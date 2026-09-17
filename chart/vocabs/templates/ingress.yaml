@@ -1,0 +1,32 @@
+{{- $i := .Values.ingress -}}
+{{- if $i.enabled }}
+{{- $public := include "vocabs.public" . | fromYaml }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "vocabs.fullname" . }}-gateway
+  labels:
+    {{- include "vocabs.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml $i.annotations | nindent 4 }}
+spec:
+  {{- with $i.className }}
+  ingressClassName: {{ . | quote }}
+  {{- end }}
+  {{- if $i.tls.enabled }}
+  tls:
+    - hosts: [{{ $public.host | quote }}]
+      secretName: {{ required "TLS secretName is required when TLS is enabled" $i.tls.secretName | quote }}
+  {{- end }}
+  rules:
+    - host: {{ $public.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "vocabs.fullname" . }}-gateway
+                port:
+                  number: {{ .Values.gateway.service.port }}
+{{- end }}

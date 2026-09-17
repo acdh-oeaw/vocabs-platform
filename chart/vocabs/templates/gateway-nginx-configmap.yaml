@@ -1,0 +1,13 @@
+{{- if .Values.gateway.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "vocabs.fullname" . }}-gateway-nginx
+  labels:
+    {{- include "vocabs.labels" . | nindent 4 }}
+data:
+  nginx.conf: |
+    {{- tpl (.Files.Get "files/gateway-nginx.conf") . | nindent 4 }}
+  redirects.js: |
+    {{- .Files.Get "files/gateway-redirects.js" | nindent 4 }}
+{{- end }}

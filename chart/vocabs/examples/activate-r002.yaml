@@ -1,0 +1,10 @@
+# Apply only after importer exited, validation passed, and public traffic is quiesced.
+data:
+  activeClaim: vocabs-data-r002
+  revision: r002
+varnish:
+  server:
+    podAnnotations:
+      vocabs.acdh.oeaw.ac.at/data-revision: "vocabs-data-r002/r002"
+imports:
+  job: {enabled: false}

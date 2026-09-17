@@ -1,0 +1,11 @@
+{{- if not .Values.fuseki.config.existingConfigMap }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "vocabs.fullname" . }}-fuseki-config
+  labels:
+    {{- include "vocabs.labels" . | nindent 4 }}
+data:
+  assembler.ttl: |
+    {{- tpl (.Files.Get "files/assembler.ttl") . | nindent 4 }}
+{{- end }}

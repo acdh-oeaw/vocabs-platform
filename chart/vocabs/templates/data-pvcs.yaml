@@ -1,0 +1,21 @@
+{{- range .Values.data.managedClaims }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .name }}
+  labels:
+    {{- include "vocabs.labels" $ | nindent 4 }}
+  annotations:
+    {{- toYaml (merge (dict "helm.sh/resource-policy" "keep") $.Values.commonAnnotations) | nindent 4 }}
+spec:
+  accessModes: {{ toJson .accessModes }}
+  {{- if eq .storageClassName "-" }}
+  storageClassName: ""
+  {{- else if .storageClassName }}
+  storageClassName: {{ .storageClassName | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .size | quote }}
+{{- end }}

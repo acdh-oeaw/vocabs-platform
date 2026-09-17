@@ -1,0 +1,58 @@
+{{- if .Values.imports.job.enabled }}
+{{- $p := include "vocabs.profile" . | fromYaml }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "vocabs.fullname" . }}-{{ .Values.imports.job.name }}
+  labels:
+    {{- include "vocabs.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.commonAnnotations | nindent 4 }}
+spec:
+  backoffLimit: {{ .Values.imports.job.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.imports.job.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "vocabs.selector" . | nindent 8 }}
+        app.kubernetes.io/component: import
+      annotations:
+        {{- toYaml .Values.imports.podAnnotations | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ include "vocabs.sa" . }}
+      automountServiceAccountToken: false
+      imagePullSecrets: {{ toJson .Values.imagePullSecrets }}
+      securityContext:
+        {{- toYaml .Values.imports.podSecurityContext | nindent 8 }}
+      containers:
+        - name: import
+          image: {{ include "vocabs.image" (dict "root" . "component" "imports" "image" .Values.imports.image) | quote }}
+          imagePullPolicy: {{ .Values.imports.image.pullPolicy }}
+          args: [{{ printf "%s/db" .Values.fuseki.persistence.mountPath | quote }}, {{ .Values.imports.source.pvc.file | quote }}]
+          env:
+            - {name: STORAGE_ENGINE, value: {{ $p.storage.engine | quote }}}
+            - {name: EXPECTED_JENA_VERSION, value: {{ $p.jena.version | quote }}}
+            - {name: VALIDATE_RDF, value: {{ .Values.imports.validateRdf | quote }}}
+            - {name: BUILD_TEXT_INDEX, value: {{ .Values.imports.buildTextIndex | quote }}}
+            - {name: ASSEMBLER, value: /config/assembler.ttl}
+            - {name: TEXT_INDEX_DIR, value: {{ printf "%s/text" .Values.fuseki.persistence.mountPath | quote }}}
+            - name: JAVA_TOOL_OPTIONS
+              value: {{ printf "-Xms%s -Xmx%s" .Values.imports.java.xms .Values.imports.java.xmx | quote }}
+          securityContext:
+            {{- toYaml .Values.imports.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.imports.resources | nindent 12 }}
+          volumeMounts:
+            - {name: target, mountPath: {{ .Values.fuseki.persistence.mountPath | quote }}}
+            - {name: source, mountPath: /data, readOnly: true}
+            - {name: config, mountPath: /config, readOnly: true}
+      volumes:
+        - name: target
+          persistentVolumeClaim: {claimName: {{ .Values.imports.targetClaim | quote }}}
+        - name: source
+          persistentVolumeClaim: {claimName: {{ .Values.imports.source.pvc.existingClaim | quote }}, readOnly: true}
+        - name: config
+          configMap:
+            name: {{ default (printf "%s-fuseki-config" (include "vocabs.fullname" .)) .Values.fuseki.config.existingConfigMap }}
+{{- end }}

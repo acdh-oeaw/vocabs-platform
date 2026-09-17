@@ -1,0 +1,21 @@
+{{- $p := .Values.gateway.anubis.persistence -}}
+{{- if and .Values.gateway.enabled $p.enabled (not $p.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "vocabs.fullname" . }}-gateway-state
+  labels:
+    {{- include "vocabs.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  accessModes: [ReadWriteOnce]
+  {{- if eq $p.storageClassName "-" }}
+  storageClassName: ""
+  {{- else if $p.storageClassName }}
+  storageClassName: {{ $p.storageClassName | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ $p.size | quote }}
+{{- end }}

@@ -1,0 +1,11 @@
+@prefix skosmos: <http://purl.org/net/skosmos#> .
+@prefix void: <http://rdfs.org/ns/void#> .
+@prefix dc: <http://purl.org/dc/terms/> .
+@prefix cfg: <urn:acdh:vocabs:config:> .
+cfg:example a skosmos:Vocabulary, void:Dataset ;
+  dc:title "Example vocabulary"@en ;
+  dc:subject cfg:general ;
+  skosmos:shortName "Example" ;
+  void:uriSpace "https://example.org/concept/" ;
+  skosmos:language "en", "de" ;
+  skosmos:defaultLanguage "en" .

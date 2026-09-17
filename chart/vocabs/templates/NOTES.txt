@@ -1,0 +1,16 @@
+ACDH Vocabs stack {{ .Values.stack.version }} in namespace {{ .Release.Namespace }}.
+Development scaffold: build/publish profile images and validate real RDF before production.
+Active PVC: {{ .Values.data.activeClaim }}. Database PVCs are retained on removal/uninstall.
+Imports enabled: {{ .Values.imports.job.enabled }}. Disable after the explicit import attempt.
+External ConfigMaps require an explicit config.revision bump to restart consumers.
+Read docs/imports.md before data activation; cache rollouts are not an atomic cutover.
+
+{{ if .Values.gateway.enabled }}
+Public URL: {{ .Values.global.publicUrl }}
+HTTP path: Ingress -> Anubis :8080 -> localhost Nginx :8081 -> Skosmos -> Varnish -> Fuseki.
+Gateway uses one replica and Recreate updates for local Anubis state.
+{{ if and .Values.networkPolicy.enabled (not .Values.networkPolicy.gatewayIngressPeers) }}
+Gateway ingress is DENIED until networkPolicy.gatewayIngressPeers matches your ingress controller.
+{{ end }}
+Validate externally managed Skosmos baseHref against global.publicUrl before deployment.
+{{ end }}

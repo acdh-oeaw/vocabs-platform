@@ -1,0 +1,17 @@
+{{- if .Values.gateway.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "vocabs.fullname" . }}-gateway
+  labels:
+    {{- include "vocabs.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: {{ .Values.gateway.service.port }}
+      targetPort: anubis
+  selector:
+    {{- include "vocabs.selector" . | nindent 4 }}
+    app.kubernetes.io/component: gateway
+{{- end }}

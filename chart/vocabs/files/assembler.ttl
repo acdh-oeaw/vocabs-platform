@@ -1,0 +1,30 @@
+{{- $p := include "vocabs.profile" . | fromYaml -}}
+@prefix fuseki: <http://jena.apache.org/fuseki#> .
+@prefix tdb: <http://jena.hpl.hp.com/2008/tdb#> .
+@prefix tdb2: <http://jena.apache.org/2016/tdb#> .
+@prefix text: <http://jena.apache.org/text#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix : <urn:vocabs:assembler:> .
+[] a fuseki:Server ; fuseki:services ( :service ) .
+:service a fuseki:Service ;
+  fuseki:name "skosmos" ;
+  fuseki:serviceQuery "sparql", "query" ;
+  fuseki:dataset :textDataset .
+:textDataset a text:TextDataset ; text:dataset :database ; text:index :index .
+{{ if eq $p.storage.engine "TDB1" -}}
+:database a tdb:DatasetTDB ; tdb:location "{{ .Values.fuseki.persistence.mountPath }}/db" ; tdb:unionDefaultGraph false .
+{{ else -}}
+:database a tdb2:DatasetTDB2 ; tdb2:location "{{ .Values.fuseki.persistence.mountPath }}/db" ; tdb2:unionDefaultGraph false .
+{{ end -}}
+:index a text:TextIndexLucene ;
+  text:directory <file:{{ .Values.fuseki.persistence.mountPath }}/text> ;
+  text:entityMap :entity ; text:storeValues true .
+:entity a text:EntityMap ;
+  text:entityField "uri" ; text:uidField "uid" ; text:langField "lang" ;
+  text:graphField "graph" ; text:defaultField "pref" ;
+  text:map (
+    [ text:field "pref" ; text:predicate skos:prefLabel ; text:analyzer [ a text:LowerCaseKeywordAnalyzer ] ]
+    [ text:field "alt" ; text:predicate skos:altLabel ; text:analyzer [ a text:LowerCaseKeywordAnalyzer ] ]
+    [ text:field "hidden" ; text:predicate skos:hiddenLabel ; text:analyzer [ a text:LowerCaseKeywordAnalyzer ] ]
+    [ text:field "notation" ; text:predicate skos:notation ; text:analyzer [ a text:LowerCaseKeywordAnalyzer ] ]
+  ) .

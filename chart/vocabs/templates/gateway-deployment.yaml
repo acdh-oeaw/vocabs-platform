@@ -1,0 +1,116 @@
+{{- if .Values.gateway.enabled }}
+{{- $public := include "vocabs.public" . | fromYaml }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "vocabs.fullname" . }}-gateway
+  labels:
+    {{- include "vocabs.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.commonAnnotations | nindent 4 }}
+spec:
+  replicas: {{ .Values.gateway.replicas }}
+  # bbolt holds an exclusive file lock; even a one-replica rolling surge is unsafe.
+  strategy: {type: Recreate}
+  selector:
+    matchLabels:
+      {{- include "vocabs.selector" . | nindent 6 }}
+      app.kubernetes.io/component: gateway
+  template:
+    metadata:
+      labels:
+        {{- include "vocabs.selector" . | nindent 8 }}
+        app.kubernetes.io/component: gateway
+      annotations:
+        {{- with .Values.gateway.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        checksum/nginx: {{ include (print $.Template.BasePath "/gateway-nginx-configmap.yaml") . | sha256sum }}
+        checksum/anubis: {{ include (print $.Template.BasePath "/gateway-anubis-configmap.yaml") . | sha256sum }}
+        vocabs.acdh.oeaw.ac.at/policy-revision: {{ .Values.gateway.anubis.policy.revision | quote }}
+    spec:
+      serviceAccountName: {{ include "vocabs.sa" . }}
+      automountServiceAccountToken: false
+      imagePullSecrets: {{ toJson .Values.imagePullSecrets }}
+      securityContext:
+        {{- toYaml .Values.gateway.podSecurityContext | nindent 8 }}
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: anubis
+          image: {{ printf "%s:%s" .Values.gateway.anubis.image.repository .Values.gateway.anubis.image.tag | quote }}
+          imagePullPolicy: {{ .Values.gateway.anubis.image.pullPolicy }}
+          ports: [{name: anubis, containerPort: 8080}]
+          env:
+            - {name: BIND, value: ":8080"}
+            - {name: TARGET, value: "http://127.0.0.1:8081"}
+            - {name: POLICY_FNAME, value: /etc/anubis/policy.yaml}
+            - {name: METRICS_BIND, value: ":9090"} # No Service/NetworkPolicy port for metrics.
+            - {name: PUBLIC_URL, value: {{ $public.url | quote }}}
+            - {name: TARGET_HOST, value: {{ $public.authority | quote }}}
+            - {name: REDIRECT_DOMAINS, value: {{ $public.authority | quote }}}
+            - {name: COOKIE_SECURE, value: {{ eq $public.scheme "https" | quote }}}
+            {{- if .Values.gateway.anubis.signingKey.existingSecret }}
+            - name: ED25519_PRIVATE_KEY_HEX
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.gateway.anubis.signingKey.existingSecret }}
+                  key: {{ .Values.gateway.anubis.signingKey.key }}
+            {{- end }}
+          securityContext:
+            {{- toYaml .Values.gateway.anubis.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.gateway.anubis.resources | nindent 12 }}
+          startupProbe:
+            exec: {command: [/ko-app/anubis, -healthcheck]}
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            exec: {command: [/ko-app/anubis, -healthcheck]}
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            exec: {command: [/ko-app/anubis, -healthcheck]}
+            periodSeconds: 20
+            timeoutSeconds: 3
+          volumeMounts:
+            - {name: anubis-policy, mountPath: /etc/anubis, readOnly: true}
+            - {name: anubis-state, mountPath: /data}
+        - name: nginx
+          image: {{ printf "%s:%s" .Values.gateway.nginx.image.repository .Values.gateway.nginx.image.tag | quote }}
+          imagePullPolicy: {{ .Values.gateway.nginx.image.pullPolicy }}
+          # Bypass entrypoint scripts which edit upstream config; ours is read-only.
+          command: [nginx]
+          args: [-c, /etc/vocabs/nginx.conf, -g, "daemon off;"]
+          securityContext:
+            {{- toYaml .Values.gateway.nginx.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.gateway.nginx.resources | nindent 12 }}
+          readinessProbe:
+            exec: {command: [wget, -q, -O, /dev/null, "http://127.0.0.1:8081/healthz"]}
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            exec: {command: [wget, -q, -O, /dev/null, "http://127.0.0.1:8081/healthz"]}
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 3
+          volumeMounts:
+            - {name: nginx-config, mountPath: /etc/vocabs, readOnly: true}
+            - {name: nginx-tmp, mountPath: /tmp}
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: {{ include "vocabs.fullname" . }}-gateway-nginx
+        - name: anubis-policy
+          configMap:
+            name: {{ default (printf "%s-gateway-anubis" (include "vocabs.fullname" .)) .Values.gateway.anubis.policy.existingConfigMap }}
+        - name: anubis-state
+          {{- if .Values.gateway.anubis.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ default (printf "%s-gateway-state" (include "vocabs.fullname" .)) .Values.gateway.anubis.persistence.existingClaim }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: nginx-tmp
+          emptyDir: {}
+{{- end }}

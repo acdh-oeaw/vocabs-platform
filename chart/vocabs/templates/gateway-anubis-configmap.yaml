@@ -1,0 +1,11 @@
+{{- if and .Values.gateway.enabled (not .Values.gateway.anubis.policy.existingConfigMap) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "vocabs.fullname" . }}-gateway-anubis
+  labels:
+    {{- include "vocabs.labels" . | nindent 4 }}
+data:
+  policy.yaml: |
+    {{- tpl (.Files.Get "files/anubis-policy.yaml") . | nindent 4 }}
+{{- end }}

@@ -1,0 +1,41 @@
+{{- if .Values.swagger.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "vocabs.fullname" . }}-swagger
+  labels:
+    {{- include "vocabs.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "vocabs.selector" . | nindent 6 }}
+      app.kubernetes.io/component: swagger
+  template:
+    metadata:
+      labels:
+        {{- include "vocabs.selector" . | nindent 8 }}
+        app.kubernetes.io/component: swagger
+    spec:
+      serviceAccountName: {{ include "vocabs.sa" . }}
+      automountServiceAccountToken: false
+      imagePullSecrets: {{ toJson .Values.imagePullSecrets }}
+      securityContext:
+        {{- toYaml .Values.swagger.podSecurityContext | nindent 8 }}
+      containers:
+        - name: swagger
+          image: {{ printf "%s:%s" .Values.swagger.image.repository .Values.swagger.image.tag | quote }}
+          imagePullPolicy: {{ .Values.swagger.image.pullPolicy }}
+          ports: [{name: http, containerPort: 8080}]
+          env:
+            - {name: URL, value: {{ required "swagger.specUrl is required" .Values.swagger.specUrl | quote }}}
+          securityContext:
+            {{- toYaml .Values.swagger.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.swagger.resources | nindent 12 }}
+          readinessProbe:
+            httpGet: {path: /, port: http}
+          livenessProbe:
+            httpGet: {path: /, port: http}
+            initialDelaySeconds: 30
+{{- end }}

@@ -1,0 +1,26 @@
+# Compatibility-first: exempt API, RDF and preflight clients before browser challenges.
+bots:
+  - name: api-and-preflight
+    expression: 'method == "OPTIONS" || path == "/rest" || path.startsWith("/rest/")'
+    action: ALLOW
+  - name: rdf-negotiation
+    headers_regex:
+      Accept: '(?i)(text/turtle|application/(rdf\+xml|ld\+json|n-triples|n-quads|trig))'
+    action: ALLOW
+  - name: browser-html
+    expression: 'method == "GET" && userAgent.contains("Mozilla") && "Accept" in headers && headers["Accept"].contains("text/html")'
+    action: CHALLENGE
+    challenge:
+      algorithm: fast
+      difficulty: 4
+  - name: other-clients
+    expression: 'true'
+    action: ALLOW
+store:
+  backend: {{ .Values.gateway.anubis.store.backend }}
+  {{- if eq .Values.gateway.anubis.store.backend "bbolt" }}
+  parameters:
+    path: /data/anubis.bdb
+  {{- else }}
+  parameters: {}
+  {{- end }}

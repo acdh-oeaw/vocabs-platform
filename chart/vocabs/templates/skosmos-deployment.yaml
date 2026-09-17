@@ -1,0 +1,62 @@
+{{- if .Values.skosmos.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "vocabs.fullname" . }}-skosmos
+  labels:
+    {{- include "vocabs.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.commonAnnotations | nindent 4 }}
+spec:
+  replicas: {{ .Values.skosmos.replicas }}
+  selector:
+    matchLabels:
+      {{- include "vocabs.selector" . | nindent 6 }}
+      app.kubernetes.io/component: skosmos
+  template:
+    metadata:
+      labels:
+        {{- include "vocabs.selector" . | nindent 8 }}
+        app.kubernetes.io/component: skosmos
+      annotations:
+        {{- with .Values.skosmos.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/skosmos-configmap.yaml") . | sha256sum }}
+        vocabs.acdh.oeaw.ac.at/config-revision: {{ .Values.skosmos.config.revision | quote }}
+    spec:
+      serviceAccountName: {{ include "vocabs.sa" . }}
+      automountServiceAccountToken: false
+      imagePullSecrets: {{ toJson .Values.imagePullSecrets }}
+      securityContext:
+        {{- toYaml .Values.skosmos.podSecurityContext | nindent 8 }}
+      containers:
+        - name: skosmos
+          image: {{ include "vocabs.image" (dict "root" . "component" "skosmos" "image" .Values.skosmos.image) | quote }}
+          imagePullPolicy: {{ .Values.skosmos.image.pullPolicy }}
+          ports:
+            - {name: http, containerPort: 80}
+          securityContext:
+            {{- toYaml .Values.skosmos.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.skosmos.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.skosmos.readinessProbe.path | quote }}
+              port: http
+            {{- toYaml (omit .Values.skosmos.readinessProbe "path") | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.skosmos.livenessProbe.path | quote }}
+              port: http
+            {{- toYaml (omit .Values.skosmos.livenessProbe "path") | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /var/www/html/config.ttl
+              subPath: config.ttl
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: {{ default (printf "%s-skosmos-config" (include "vocabs.fullname" .)) .Values.skosmos.config.existingConfigMap }}
+{{- end }}

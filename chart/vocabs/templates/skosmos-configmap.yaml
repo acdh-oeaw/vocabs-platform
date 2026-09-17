@@ -1,0 +1,11 @@
+{{- if not .Values.skosmos.config.existingConfigMap }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "vocabs.fullname" . }}-skosmos-config
+  labels:
+    {{- include "vocabs.labels" . | nindent 4 }}
+data:
+  config.ttl: |
+    {{- tpl (default (.Files.Get "files/skosmos.ttl") .Values.skosmos.config.inline) . | nindent 4 }}
+{{- end }}

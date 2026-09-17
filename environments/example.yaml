@@ -1,0 +1,49 @@
+# NON-PRODUCTION example: replace all CHANGE-ME fields and build/publish images first.
+stack: {version: "2026.09.0-dev"}
+global:
+  publicUrl: "https://vocabs.example.org/"
+gateway:
+  enabled: true
+  replicas: 1
+  anubis:
+    signingKey:
+      existingSecret: change-me-anubis-signing-key # Create this Secret outside Helm before installation.
+    persistence:
+      storageClassName: CHANGE-ME-GATEWAY-STORAGECLASS
+skosmos:
+  replicas: 2
+  config:
+    existingConfigMap: vocabs-skosmos-config
+    revision: config-r001
+fuseki:
+  replicas: 1
+  persistence: {mountPath: /fuseki/databases}
+data:
+  activeClaim: vocabs-data-r001
+  revision: r001
+  managedClaims:
+    - name: vocabs-data-r001
+      storageClassName: CHANGE-ME-RBD-STORAGECLASS
+      size: 30Gi
+      accessModes: [ReadWriteOnce]
+      retain: true
+    - name: vocabs-data-r002
+      storageClassName: CHANGE-ME-RBD-STORAGECLASS
+      size: 30Gi
+      accessModes: [ReadWriteOnce]
+      retain: true
+imports:
+  job: {enabled: false}
+  targetClaim: vocabs-data-r002
+  source:
+    type: pvc
+    pvc: {existingClaim: vocabs-import, file: /data/example.rdf}
+  java: {xms: 4g, xmx: 20g}
+  resources:
+    requests: {cpu: "4", memory: 18Gi}
+    limits: {cpu: "8", memory: 24Gi}
+ingress:
+  enabled: true
+  className: CHANGE-ME
+  tls: {enabled: true, secretName: CHANGE-ME-TLS-SECRET}
+swagger: {enabled: false}

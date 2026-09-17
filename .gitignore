@@ -1,0 +1,39 @@
+chart/vocabs/charts/
+.build/
+.venv/
+__pycache__/
+environments/local*.yaml
+
+# Environment / local secrets
+.env
+.env.*
+!.env.example
+
+# Private keys and certificates
+*.key
+*.p12
+*.pfx
+
+# PEM files may contain private keys.
+# Ignore by default unless a public certificate is intentionally added later.
+*.pem
+
+# Kubernetes local configuration
+kubeconfig
+*.kubeconfig
+
+# Editor / OS files
+.vscode/
+.idea/
+.DS_Store
+
+# Generated archives
+*.zip
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Logs
+*.log
