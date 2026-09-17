@@ -199,3 +199,10 @@ material. Tests generate temporary synthetic secrets and remove them on exit.
 The repository `.gitignore` excludes local environment secrets, private keys,
 certificates and kubeconfig files, while retaining `.env.example`; ignore rules
 do not protect secrets already tracked by Git.
+
+## Helm repository and Rancher Apps
+
+The chart publishes to `https://acdh-oeaw.github.io/vocabs-platform/` after the
+one-time GitHub Pages setup. See [Helm publishing and Rancher installation](docs/rancher.md)
+for release versioning, GitHub settings, repository registration and development
+pilot values. Chart packages include the pinned Varnish dependency.

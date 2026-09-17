@@ -1,0 +1,49 @@
+name: Publish Helm chart
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: helm-release
+  cancel-in-progress: false
+jobs:
+  validate:
+    uses: ./.github/workflows/helm-ci.yml
+  release:
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install pinned tools
+        run: bash scripts/install-ci-tools.sh
+      - name: Build and package with locked dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          helm dependency build ./chart/vocabs
+          helm lint ./chart/vocabs
+          helm package ./chart/vocabs --destination .cr-release-packages
+          tar -tzf .cr-release-packages/vocabs-*.tgz | grep '^vocabs/charts/varnish-cache/Chart.yaml$' > /dev/null
+          helm template vocabs .cr-release-packages/vocabs-*.tgz -f environments/example.yaml > "$RUNNER_TEMP/vocabs-packaged.yaml"
+      - name: Configure publishing identity
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+      - name: Publish chart release and HTTP repository index
+        uses: helm/chart-releaser-action@cae68fefc6b5f367a0275617c9f83181ba54714f # v1.7.0
+        with:
+          version: v1.7.0
+          charts_dir: chart
+          pages_branch: gh-pages
+          # Package explicitly above, including on the initial publishing run.
+          skip_packaging: true
+          skip_existing: true
+        env:
+          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}

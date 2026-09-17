@@ -1,0 +1,170 @@
+# Helm publishing and Rancher installation
+
+The public HTTP Helm repository for both Helm and Rancher is:
+
+```text
+https://acdh-oeaw.github.io/vocabs-platform/
+```
+
+It becomes available after the first successful release and GitHub Pages
+publication. A standard `index.yaml` repository works with native Helm charts;
+no special Rancher Operator or custom catalog server is required. See
+[Rancher's chart documentation](https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/helm-charts-in-rancher/create-apps).
+The packaged `app-readme.md` adds brief installation guidance. We intentionally
+use the YAML editor rather than duplicate configuration in `questions.yaml`;
+`values.yaml` and `values.schema.json` remain authoritative.
+
+## Publishing and versions
+
+Pushes to `main` run `.github/workflows/helm-release.yml`. Its read-only validation
+job reuses the existing Helm CI: locked dependency build, lint, rendering and
+safety tests, Turtle validation, and strict Kubernetes schema validation.
+Only after success does the publishing job receive `contents: write`.
+Both jobs use the same checksum-pinned Helm 3.17.3/kubeconform 0.6.7 installer.
+
+The publishing job rebuilds dependencies from `Chart.lock`, packages
+`chart/vocabs`, checks the bundled Varnish chart, and renders the package with the
+example values. The official
+[chart-releaser-action v1.7.0](https://github.com/helm/chart-releaser-action/tree/cae68fefc6b5f367a0275617c9f83181ba54714f)
+is pinned to commit `cae68fefc6b5f367a0275617c9f83181ba54714f` and uses
+chart-releaser CLI v1.7.0. `charts_dir: chart` preserves the chart location.
+Explicit packaging with `skip_packaging: true` also handles the first release
+without depending on changes since an earlier Git tag.
+
+Packages go to GitHub Release assets; `gh-pages/index.yaml` references those
+assets. Generated packages and the index are never committed to `main`.
+Varnish 0.1.3 is bundled, so installers do not need OCI credentials or a separate
+`helm dependency build`. Concurrent releases are serialized.
+
+- `Chart.yaml` **version changes → new Helm/Rancher release**, named
+  `vocabs-<version>`. Bump this for every chart change intended for distribution.
+- **appVersion changes → software stack version** metadata; select the runtime
+  profile using the existing `stack.version` configuration. Changing appVersion
+  alone does not publish another package under an existing chart version.
+- Version bumps are explicit reviewed Git changes; CI never edits versions.
+  `skip_existing: true` preserves existing releases instead of replacing assets.
+  The current version `0.2.0-dev` remains a prerelease.
+
+The publishing step uses only `secrets.GITHUB_TOKEN`, with no PAT, package-write,
+Actions-write, or OIDC permissions. Checkout credentials are not persisted.
+
+## One-time GitHub setup
+
+1. Initialize an independent `gh-pages` branch if it does not exist. It needs an
+   initial commit; create it in a disposable clone, not by clearing your working
+   checkout. For example, maintainers can run the following in a fresh clone:
+
+   ```bash
+   git switch --orphan gh-pages
+   touch .nojekyll
+   git add .nojekyll
+   git commit -m "Initialize Helm repository Pages branch"
+   git push origin gh-pages
+   ```
+
+   Do not run this initialization over an existing `gh-pages` branch. The
+   releaser expects that branch to exist and maintains its index afterwards.
+2. Open **Settings → Pages**, select **Deploy from a branch**, then **gh-pages**
+   and **/ (root)**. Save. Ensure organization policy permits Pages and Actions,
+   and repository rules allow the release job to create `vocabs-*` tags/releases
+   and update `gh-pages` with its `contents: write` token.
+3. Push the reviewed publishing workflow/chart changes to `main`. Confirm the
+   validation and publishing jobs succeed and the release has its `.tgz` asset.
+4. Confirm Pages has published the updated index:
+
+   ```bash
+   curl -fsSL https://acdh-oeaw.github.io/vocabs-platform/index.yaml
+   helm repo add acdh-vocabs https://acdh-oeaw.github.io/vocabs-platform/
+   helm repo update
+   helm search repo acdh-vocabs
+   helm search repo acdh-vocabs --devel
+   ```
+
+   `--devel` includes the current prerelease; a plain search may show no charts
+   until a stable chart version is released. GitHub documents that commits made
+   by `GITHUB_TOKEN` do not trigger a Pages build. If the index on Pages remains
+   stale, a maintainer must trigger/re-run the Pages deployment for the updated
+   `gh-pages` branch and verify the URL before Rancher synchronization. See
+   [GitHub Pages publishing sources](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
+   This workflow does not add broader permissions or a PAT to bypass that limit.
+
+## Add the repository in Rancher
+
+In the target **Cluster → Apps → Repositories → Create**, choose an **HTTP(S)
+Helm repository**, name it `acdh-vocabs`, and enter the URL above. After repository
+synchronization, open **Apps → Charts → vocabs → Install**. Enable prerelease
+versions if the Rancher version selector filters out `0.2.0-dev`.
+Select namespace `vocabs-platform-dev` and use the values YAML editor.
+
+## Development pilot values
+
+Start with `environments/example.yaml` and apply the following overrides to your
+installation values. These development settings are not chart defaults.
+
+```yaml
+global:
+  publicUrl: https://vocabs-platform.acdh-dev.oeaw.ac.at/
+ingress:
+  enabled: true
+  className: traefik
+  tls:
+    enabled: true
+    secretName: CHANGE-ME-TLS-SECRET
+gateway:
+  enabled: true
+  anubis:
+    signingKey:
+      existingSecret: CHANGE-ME-ANUBIS-SIGNING-SECRET
+    persistence:
+      storageClassName: ceph-rbd-pool
+data:
+  activeClaim: vocabs-data-r001
+  revision: r001
+  managedClaims:
+    - name: vocabs-data-r001
+      storageClassName: ceph-rbd-pool
+      size: 30Gi
+      accessModes: [ReadWriteOnce]
+      retain: true
+    - name: vocabs-data-r002
+      storageClassName: ceph-rbd-pool
+      size: 30Gi
+      accessModes: [ReadWriteOnce]
+      retain: true
+imports:
+  job:
+    enabled: false
+  targetClaim: vocabs-data-r002
+  source:
+    type: pvc
+    pvc:
+      existingClaim: vocabs-import
+      file: /data/example.rdf
+```
+
+Provision the separate shared RDF source PVC `vocabs-import` in namespace
+`vocabs-platform-dev` with StorageClass `ceph-csi-cephfs-default-1`, appropriate
+capacity and access modes. The chart references this existing source claim;
+it does not create it or choose its StorageClass. Database and Anubis storage
+use `ceph-rbd-pool` as shown above.
+
+Replace Secret placeholders with existing namespace-local TLS/signing Secrets.
+Generate the Skosmos ConfigMap for this exact public URL, supply verified
+platform images, and set `networkPolicy.gatewayIngressPeers` for the actual
+Traefik pods/namespaces. Empty peers deny ingress; do not guess cluster labels.
+See [gateway prerequisites](gateway.md), [Skosmos configuration](../config/skosmos/README.md),
+[storage](storage.md), and [candidate imports](imports.md). Install does not load
+RDF automatically. Keep the active/candidate workflow and revision safeguards.
+
+After reviewing values, a CLI equivalent is:
+
+```bash
+helm upgrade --install vocabs acdh-vocabs/vocabs \
+  --version 0.2.0-dev --namespace vocabs-platform-dev --create-namespace \
+  -f environments/example.yaml -f environments/local-pilot.yaml
+```
+
+Here `environments/local-pilot.yaml` is your local override file with the settings
+above and resolved prerequisites; its name is already ignored by Git.
+Publishing does not certify the runtime stack or replace the Kubernetes pilot
+acceptance tests in the existing runbooks.
