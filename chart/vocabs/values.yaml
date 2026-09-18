@@ -170,7 +170,7 @@ imports:
 swagger:
   enabled: false
   image: {repository: docker.io/swaggerapi/swagger-ui, tag: "v5.17.14", pullPolicy: IfNotPresent}
-  specUrl: "" # Public URL of Skosmos swagger.json; required when enabled.
+  specUrl: "" # Swagger/OpenAPI URL; required when enabled.
   resources:
     requests: {cpu: 50m, memory: 64Mi}
     limits: {cpu: 500m, memory: 128Mi}

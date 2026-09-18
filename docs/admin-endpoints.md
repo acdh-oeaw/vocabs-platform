@@ -9,36 +9,30 @@ services:
 
 | Use | URL | Backend | TLS Secret |
 | --- | --- | --- | --- |
-| Fuseki administration | `https://jena-vp-dev.acdh-dev.oeaw.ac.at/` | Fuseki ClusterIP Service | `jena-vp-dev-tls` |
-| Swagger/API documentation | `https://vocabsapi-vp-dev.acdh-dev.oeaw.ac.at/` | Swagger ClusterIP Service | `vocabsapi-vp-dev-tls` |
+| Swagger/API UI | `https://vocabsapi-vp-dev.acdh-dev.oeaw.ac.at/` | Swagger ClusterIP Service | `acdh-prod` / `vocabsapi-vp-dev-tls` |
+| Jena/Fuseki administration | `http://jena-vp-dev.acdh-cluster-2.arz.oeaw.ac.at/` | Fuseki ClusterIP Service | None; HTTP-only |
 
-Both administrative Ingress resources use the `nginx` IngressClass and the exact
-NGINX whitelist `10.4.24.0/24,10.4.245.0/24`. Fuseki is not routed through
-Anubis or the public Gateway. Fuseki, Swagger and Varnish remain `ClusterIP`;
-Helm does not create DNS records or externally exposed Services.
+Swagger loads its specification same-origin from `/swagger.json`. The Swagger
+Ingress routes that exact path to the Skosmos ClusterIP Service, and routes
+`/rest/v1` to Skosmos as well so Swagger 2.0's relative `basePath` is not sent
+to the Swagger UI container. The public application Ingress and its Anubis
+gateway path are unchanged. No CORS headers were added or broadened.
 
-The two administrative names must be supplied by the organization's
-internal/private DNS only. DNS privacy is not by itself network isolation. This
-repository cannot inspect the cluster's NGINX Service or load balancer, so the
-deployment team must verify whether the selected `nginx` controller uses an
-internal/private load balancer. If it is publicly reachable, the names remain
-intentionally absent from public DNS and NGINX CIDR filtering is an additional
-control, but the load balancer may still be reachable from outside those DNS
-zones. Network-level private exposure would require an internal controller or
-load balancer and is outside this chart.
+Neither administrative Ingress uses an ingress IP whitelist. Fuseki has no
+cert-manager certificate and no TLS configuration. The intended access control
+now depends on the actual internal DNS, ingress-controller and load-balancer
+topology. An internal-looking hostname is not proof of private network
+reachability; operators must ensure that DNS and the selected `nginx` ingress
+load balancer expose it only as intended. Helm does not create DNS records or
+externally exposed Services, and Fuseki, Swagger and Varnish remain `ClusterIP`.
 
-The whitelist is trustworthy only when ingress-nginx receives the real client
-source address. Verify on the cluster whether source preservation is direct,
-via trusted `X-Forwarded-For`, PROXY protocol, or another trusted proxy setup;
-this repository cannot verify that controller/load-balancer configuration and
-does not change it.
-
-The `acdh-prod` ClusterIssuer owns the three TLS Secrets. The issuer's HTTP-01
-or DNS-01 solver mode must be checked in the cluster. If it uses HTTP-01, the
-certificate solver must remain reachable without weakening either administrative
-whitelist or public application ingress to `0.0.0.0/0`. Provision the two
-private DNS names and validate issuance before relying on these endpoints.
+The live Skosmos 3.3 endpoint was verified at the public application host:
+`GET /swagger.json` returned HTTP 200 with a Swagger 2.0 JSON document. The
+document has `basePath: /rest/v1` and no `host` or `servers` field, so Swagger UI
+uses its current origin for Try it out requests; the `/rest/v1` Ingress path
+therefore sends those requests to Skosmos rather than the UI container. The
+document itself is not rewritten, so its API base metadata remains unchanged.
 
 NetworkPolicy remains disabled in the development pilot. If enabled later,
-explicit policy must allow the NGINX ingress controller to reach both Fuseki and
-Swagger; this chart does not infer controller identity or add those peers.
+explicit policy must allow the NGINX ingress controller to reach Fuseki,
+Swagger, and Skosmos for the `/swagger.json` and `/rest/v1` proxy paths.

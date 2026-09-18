@@ -71,8 +71,12 @@ class Rendering(unittest.TestCase):
         ingress = [d for d in docs if d['kind']=='Ingress']
         self.assertEqual(len(ingress), 2)
         for i in ingress:
-            backend=i['spec']['rules'][0]['http']['paths'][0]['backend']['service']['name']
-            self.assertTrue(backend.endswith(('-gateway','-swagger')))
+            backends = [path['backend']['service']['name'] for path in i['spec']['rules'][0]['http']['paths']]
+            if i['metadata']['name'].endswith('-gateway'):
+                self.assertTrue(any(backend.endswith('-gateway') for backend in backends))
+            else:
+                self.assertTrue(any(backend.endswith('-swagger') for backend in backends))
+                self.assertTrue(any(backend.endswith('-skosmos') for backend in backends))
 
     def test_development_public_and_private_ingresses(self):
         values = yaml.safe_load(Path('environments/vocabs-platform-dev.yaml').read_text())
@@ -86,13 +90,12 @@ class Rendering(unittest.TestCase):
         self.assertEqual(public['metadata']['annotations']['cert-manager.io/cluster-issuer'], 'acdh-prod')
         self.assertTrue(public['spec']['rules'][0]['http']['paths'][0]['backend']['service']['name'].endswith('-gateway'))
 
-        expected_private = '10.4.24.0/24,10.4.245.0/24'
         fuseki = ingresses['vocabs-platform-dev-vocabs-fuseki-admin']
         self.assertEqual(fuseki['spec']['ingressClassName'], 'nginx')
-        self.assertEqual(fuseki['spec']['rules'][0]['host'], 'jena-vp-dev.acdh-dev.oeaw.ac.at')
-        self.assertEqual(fuseki['spec']['tls'][0]['secretName'], 'jena-vp-dev-tls')
-        self.assertEqual(fuseki['metadata']['annotations']['cert-manager.io/cluster-issuer'], 'acdh-prod')
-        self.assertEqual(fuseki['metadata']['annotations']['nginx.ingress.kubernetes.io/whitelist-source-range'], expected_private)
+        self.assertEqual(fuseki['spec']['rules'][0]['host'], 'jena-vp-dev.acdh-cluster-2.arz.oeaw.ac.at')
+        self.assertNotIn('tls', fuseki['spec'])
+        self.assertNotIn('cert-manager.io/cluster-issuer', fuseki['metadata'].get('annotations', {}))
+        self.assertNotIn('nginx.ingress.kubernetes.io/whitelist-source-range', fuseki['metadata'].get('annotations', {}))
         self.assertEqual(fuseki['spec']['rules'][0]['http']['paths'][0]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-fuseki')
 
         swagger = ingresses['vocabs-platform-dev-vocabs-vocabsapi']
@@ -100,8 +103,14 @@ class Rendering(unittest.TestCase):
         self.assertEqual(swagger['spec']['rules'][0]['host'], 'vocabsapi-vp-dev.acdh-dev.oeaw.ac.at')
         self.assertEqual(swagger['spec']['tls'][0]['secretName'], 'vocabsapi-vp-dev-tls')
         self.assertEqual(swagger['metadata']['annotations']['cert-manager.io/cluster-issuer'], 'acdh-prod')
-        self.assertEqual(swagger['metadata']['annotations']['nginx.ingress.kubernetes.io/whitelist-source-range'], expected_private)
-        self.assertEqual(swagger['spec']['rules'][0]['http']['paths'][0]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-swagger')
+        self.assertNotIn('nginx.ingress.kubernetes.io/whitelist-source-range', swagger['metadata'].get('annotations', {}))
+        paths = swagger['spec']['rules'][0]['http']['paths']
+        self.assertEqual([(path['path'], path['pathType']) for path in paths], [('/swagger.json', 'Exact'), ('/rest/v1', 'Prefix'), ('/', 'Prefix')])
+        self.assertEqual(paths[0]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-skosmos')
+        self.assertEqual(paths[1]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-skosmos')
+        self.assertEqual(paths[2]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-swagger')
+        swagger_container = find(docs, 'Deployment', 'swagger')['spec']['template']['spec']['containers'][0]
+        self.assertEqual(swagger_container['env'][0]['value'], '/swagger.json')
         self.assertEqual(find(docs, 'Service', 'fuseki')['spec']['type'], 'ClusterIP')
         self.assertEqual(find(docs, 'Service', 'swagger')['spec']['type'], 'ClusterIP')
 
