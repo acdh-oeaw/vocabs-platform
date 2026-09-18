@@ -15,7 +15,8 @@ s = profiles[a.stack]
 assert s['jena']['version'] == s['importer']['jenaVersion']
 for component, image in [('skosmos', 'vocabs-skosmos'), ('fuseki-runtime', 'vocabs-fuseki'), ('jena-tools', 'vocabs-jena-tools')]:
     v = s['skosmos']['version'] if component == 'skosmos' else s['jena']['version']
-    args = ['docker', 'build', '-f', f'images/{component}/Dockerfile', '-t', f'{a.registry}/{image}:{v}-{s["imageRevision"]}']
+    revision = s['skosmos'].get('imageRevision', s['imageRevision']) if component == 'skosmos' else s['imageRevision']
+    args = ['docker', 'build', '-f', f'images/{component}/Dockerfile', '-t', f'{a.registry}/{image}:{v}-{revision}']
     if component == 'skosmos':
         args += ['--build-arg', f'SKOSMOS_UPSTREAM_TAG={s["skosmos"]["upstreamTag"]}']
     else:

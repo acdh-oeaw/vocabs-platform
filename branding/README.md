@@ -12,3 +12,5 @@ and `/var/www/html/plugins`; assets go into dedicated ACDH subdirectories under
 extension locations, not automatic plugin registration. Enable migrated plugins
 in validated configuration. Test template/API compatibility and plugin state
 before using multiple replicas. Placeholder .gitkeep files are not branding.
+See `docs/skosmos-branding.md` for the migration matrix and browser acceptance
+checklist.

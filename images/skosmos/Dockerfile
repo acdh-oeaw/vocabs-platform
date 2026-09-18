@@ -5,3 +5,4 @@ COPY branding/custom-templates/ /var/www/html/custom-templates/
 COPY branding/plugins/ /var/www/html/plugins/
 COPY branding/css/ /var/www/html/resource/css/acdh/
 COPY branding/images/ /var/www/html/resource/pics/acdh/
+COPY branding/assets/fonts/ /var/www/html/resource/fonts/acdh/

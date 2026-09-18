@@ -1,14 +1,17 @@
 name: Publish ACDH container images
 on:
-  workflow_dispatch: {}
-  push:
-    branches: [main]
-    paths:
-      - 'images/**'
-      - 'branding/**'
-      - 'scripts/build-images.py'
-      - 'chart/vocabs/compatibility.yaml'
-      - '.github/workflows/container-release.yml'
+  workflow_dispatch:
+    inputs:
+      component:
+        description: Container component to publish
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - skosmos
+          - fuseki
+          - jena-tools
 permissions:
   contents: read
   packages: write
@@ -26,10 +29,13 @@ jobs:
       - name: Resolve compatibility profile and build matrix
         id: profile
         shell: bash
+        env:
+          RELEASE_COMPONENT: ${{ inputs.component || 'all' }}
         run: |
           set -euo pipefail
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
           import json
+          import os
           from pathlib import Path
           import yaml
 
@@ -39,35 +45,41 @@ jobs:
           java_base = 'docker.io/library/eclipse-temurin:21-jdk-jammy@sha256:4cfc63a7118da9267c17e2c988e1599d83d5d64a3832a760f0e77c7e8f6b29f7'
           jena_version = profile['jena']['version']
           revision = profile['imageRevision']
+          skosmos_revision = profile['skosmos'].get('imageRevision', revision)
           matrix = [
               {
                   'component': 'skosmos',
                   'file': 'images/skosmos/Dockerfile',
-                  'tag': f"ghcr.io/acdh-oeaw/vocabs-skosmos:{profile['skosmos']['version']}-{revision}",
+                  'tag': f"ghcr.io/acdh-oeaw/vocabs-skosmos:{profile['skosmos']['version']}-{skosmos_revision}",
                   'build_args': f"SKOSMOS_UPSTREAM_TAG={profile['skosmos']['upstreamTag']}",
               },
               {
-                  'component': 'fuseki',
-                  'file': 'images/fuseki-runtime/Dockerfile',
-                  'tag': f"ghcr.io/acdh-oeaw/vocabs-fuseki:{jena_version}-{revision}",
-                  'build_args': '\n'.join([
-                      f'JAVA_BASE_IMAGE={java_base}',
-                      f'JENA_VERSION={jena_version}',
-                      f"JENA_SHA512={profile['jena']['fusekiSha512']}",
-                  ]),
+                'component': 'fuseki',
+                'file': 'images/fuseki-runtime/Dockerfile',
+                'tag': f"ghcr.io/acdh-oeaw/vocabs-fuseki:{jena_version}-{revision}",
+                'build_args': '\n'.join([
+                  f'JAVA_BASE_IMAGE={java_base}',
+                  f'JENA_VERSION={jena_version}',
+                  f"JENA_SHA512={profile['jena']['fusekiSha512']}",
+                ]),
               },
               {
-                  'component': 'jena-tools',
-                  'file': 'images/jena-tools/Dockerfile',
-                  'tag': f"ghcr.io/acdh-oeaw/vocabs-jena-tools:{jena_version}-{revision}",
-                  'build_args': '\n'.join([
-                      f'JAVA_BASE_IMAGE={java_base}',
-                      f'JENA_VERSION={jena_version}',
-                      f"JENA_SHA512={profile['jena']['toolsSha512']}",
-                      f"FUSEKI_SHA512={profile['jena']['fusekiSha512']}",
-                  ]),
+                'component': 'jena-tools',
+                'file': 'images/jena-tools/Dockerfile',
+                'tag': f"ghcr.io/acdh-oeaw/vocabs-jena-tools:{jena_version}-{revision}",
+                'build_args': '\n'.join([
+                  f'JAVA_BASE_IMAGE={java_base}',
+                  f'JENA_VERSION={jena_version}',
+                  f"JENA_SHA512={profile['jena']['toolsSha512']}",
+                  f"FUSEKI_SHA512={profile['jena']['fusekiSha512']}",
+                ]),
               },
           ]
+          requested = os.environ['RELEASE_COMPONENT']
+          if requested not in {'all', 'skosmos', 'fuseki', 'jena-tools'}:
+              raise SystemExit(f'Unsupported container component: {requested}')
+          if requested != 'all':
+              matrix = [item for item in matrix if item['component'] == requested]
           print(f"matrix={json.dumps({'include': matrix}, separators=(',', ':'))}")
           PY
 

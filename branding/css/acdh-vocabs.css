@@ -1,0 +1,129 @@
+@font-face {
+  font-family: "Fira Sans";
+  src: url("../../fonts/acdh/FiraSans-Regular.woff") format("woff");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Fira Sans";
+  src: url("../../fonts/acdh/FiraSans-Bold.woff") format("woff");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Fira Sans";
+  src: url("../../fonts/acdh/FiraSans-Italic.woff") format("woff");
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+}
+
+:root {
+  --acdh-pink: #ed0d6c;
+  --acdh-cyan: #00acd3;
+  --acdh-ink: #394554;
+  --acdh-muted: #74787a;
+  --acdh-surface: #f6f7f8;
+  --acdh-border: #d5dbde;
+  --dark-color: var(--acdh-ink);
+  --muted-color: var(--acdh-muted);
+  --medium-color: #00748f;
+  --secondary-medium-color: #b9c1c6;
+  --light-color: var(--acdh-border);
+  --secondary-light-color: var(--acdh-surface);
+  --body-text: var(--acdh-ink);
+  --topbar-bg-1: var(--acdh-ink);
+  --topbar-bg-2: var(--acdh-ink);
+  --headerbar-bg-1: #ffffff;
+  --headerbar-bg-2: #ffffff;
+  --headerbar-text: var(--acdh-ink);
+  --search-button-bg: var(--acdh-pink);
+  --search-dropdown-selected-bg: var(--acdh-pink);
+  --main-bg-1: #ffffff;
+  --main-bg-2: var(--acdh-surface);
+  --main-bg-3: #ffffff;
+  --main-content-bg: #ffffff;
+  --main-content-text: var(--acdh-ink);
+  --main-content-link: var(--medium-color);
+  --footer-bg: var(--acdh-ink);
+  --footer-text: #ffffff;
+  --font-family: "Fira Sans", sans-serif;
+  --font-family-heading: "Fira Sans", sans-serif;
+}
+
+body {
+  letter-spacing: 0;
+}
+
+#headerbar {
+  border-bottom: 4px solid var(--acdh-cyan);
+}
+
+#headerbar-top-slot .acdh-header-logo {
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.acdh-header-logo img {
+  display: block;
+  height: auto;
+  max-width: min(18rem, 80vw);
+  width: 11rem;
+}
+
+#landing-end-slot {
+  background: var(--acdh-surface) url("../../pics/acdh/vocabs-intro-bg.jpg") center / cover;
+  border-top: 4px solid var(--acdh-pink);
+  min-height: 12rem;
+  padding: 1.5rem;
+}
+
+.acdh-landing-intro {
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--acdh-ink);
+  padding: 1.25rem;
+}
+
+.acdh-landing-intro h2,
+.acdh-about h2,
+.acdh-footer h2 {
+  color: var(--acdh-pink);
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.acdh-about img {
+  height: auto;
+  max-width: 100%;
+}
+
+footer {
+  background: var(--footer-bg);
+  border-top: 4px solid var(--acdh-pink);
+  color: var(--footer-text);
+}
+
+.acdh-footer {
+  margin: 0 auto;
+  max-width: 72rem;
+  padding: 2rem 1rem;
+}
+
+.acdh-footer a {
+  color: #ffffff;
+}
+
+@media (max-width: 767.98px) {
+  #landing-end-slot {
+    min-height: 8rem;
+    padding: 1rem;
+  }
+
+  .acdh-footer {
+    padding: 1.5rem 1rem;
+  }
+}
