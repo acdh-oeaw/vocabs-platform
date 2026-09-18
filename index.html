@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ACDH Vocabs Platform Helm Repository</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, sans-serif; line-height: 1.5; }
+    body { max-width: 42rem; margin: 0 auto; padding: 3rem 1.25rem; color: #202124; }
+    h1 { line-height: 1.15; }
+    code, pre { background: #f1f3f4; border-radius: 4px; }
+    code { padding: 0.1rem 0.3rem; }
+    pre { padding: 1rem; overflow-x: auto; }
+    a { color: #075985; }
+  </style>
+</head>
+<body>
+  <h1>ACDH Vocabs Platform Helm Repository</h1>
+  <p>Helm repository for the ACDH Vocabs platform.</p>
+
+  <h2>Helm</h2>
+  <pre><code>helm repo add acdh-vocabs \
+  https://acdh-oeaw.github.io/vocabs-platform/
+
+helm repo update
+helm search repo acdh-vocabs --devel</code></pre>
+
+  <h2>Rancher</h2>
+  <p>Add this repository under <strong>Apps &rarr; Repositories &rarr; Create &rarr; HTTP(S) Helm repository</strong>:</p>
+  <p><a href="https://acdh-oeaw.github.io/vocabs-platform/">https://acdh-oeaw.github.io/vocabs-platform/</a></p>
+
+  <h2>Source and documentation</h2>
+  <p>
+    <a href="https://github.com/acdh-oeaw/vocabs-platform">Source</a> ·
+    <a href="https://github.com/acdh-oeaw/vocabs-platform#readme">README</a> ·
+    <a href="https://github.com/acdh-oeaw/vocabs-platform/blob/main/docs/rancher.md">Rancher documentation</a> ·
+    <a href="https://github.com/acdh-oeaw/vocabs-platform/releases">Releases</a>
+  </p>
+</body>
+</html>
