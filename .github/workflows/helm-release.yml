@@ -2,6 +2,7 @@ name: Publish Helm chart
 on:
   push:
     branches: [main]
+  workflow_dispatch: {}
 permissions:
   contents: read
 concurrency:
@@ -21,21 +22,37 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Install pinned tools
-        run: bash scripts/install-ci-tools.sh
-      - name: Build and package with locked dependencies
+      - name: Fetch and verify publishing branch
         shell: bash
         run: |
           set -euo pipefail
-          helm dependency build ./chart/vocabs
-          helm lint ./chart/vocabs
+          git fetch origin gh-pages:refs/remotes/origin/gh-pages
+          git branch -r
+          git rev-parse --verify origin/gh-pages
+      - name: Install pinned tools
+        run: bash scripts/install-ci-tools.sh
+      - name: Build chart dependencies
+        run: helm dependency build ./chart/vocabs
+      - name: Lint chart
+        run: helm lint ./chart/vocabs
+      - name: Package with locked dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
           helm package ./chart/vocabs --destination .cr-release-packages
           tar -tzf .cr-release-packages/vocabs-*.tgz | grep '^vocabs/charts/varnish-cache/Chart.yaml$' > /dev/null
           helm template vocabs .cr-release-packages/vocabs-*.tgz -f environments/example.yaml > "$RUNNER_TEMP/vocabs-packaged.yaml"
       - name: Configure publishing identity
         run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+      - name: Verify publishing state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git remote -v
+          git branch -a
+          git rev-parse --verify origin/gh-pages
       - name: Publish chart release and HTTP repository index
         uses: helm/chart-releaser-action@cae68fefc6b5f367a0275617c9f83181ba54714f # v1.7.0
         with:
@@ -46,4 +63,4 @@ jobs:
           skip_packaging: true
           skip_existing: true
         env:
-          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
