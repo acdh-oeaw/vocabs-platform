@@ -35,13 +35,6 @@ jobs:
         run: helm dependency build ./chart/vocabs
       - name: Lint chart
         run: helm lint ./chart/vocabs
-      - name: Package with locked dependencies
-        shell: bash
-        run: |
-          set -euo pipefail
-          helm package ./chart/vocabs --destination .cr-release-packages
-          tar -tzf .cr-release-packages/vocabs-*.tgz | grep '^vocabs/charts/varnish-cache/Chart.yaml$' > /dev/null
-          helm template vocabs .cr-release-packages/vocabs-*.tgz -f environments/example.yaml > "$RUNNER_TEMP/vocabs-packaged.yaml"
       - name: Configure publishing identity
         run: |
           git config user.name "$GITHUB_ACTOR"
@@ -59,8 +52,6 @@ jobs:
           version: v1.7.0
           charts_dir: chart
           pages_branch: gh-pages
-          # Package explicitly above, including on the initial publishing run.
-          skip_packaging: true
           skip_existing: true
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
