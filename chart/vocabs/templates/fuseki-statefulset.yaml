@@ -92,8 +92,8 @@ spec:
         {{- if .Values.fuseki.auth.enabled }}
         - name: fuseki-shiro
           secret:
-            secretName: {{ .Values.fuseki.auth.existingSecret | quote }}
+            secretName: {{ include "vocabs.fusekiAuthSecretName" . | quote }}
             items:
-              - key: {{ .Values.fuseki.auth.secretKey | quote }}
+              - key: {{ .Values.fuseki.auth.secret.key | quote }}
                 path: shiro.ini
         {{- end }}

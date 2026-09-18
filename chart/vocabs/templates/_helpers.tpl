@@ -20,6 +20,20 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- default "default" .Values.serviceAccount.name -}}
 {{- end -}}
 {{- end -}}
+{{- define "vocabs.fusekiAuthSecretName" -}}
+{{- if .Values.fuseki.auth.secret.create -}}
+{{- default (printf "%s-fuseki-shiro" (include "vocabs.fullname" .)) .Values.fuseki.auth.secret.name -}}
+{{- else -}}
+{{- .Values.fuseki.auth.secret.existingSecret -}}
+{{- end -}}
+{{- end -}}
+{{- define "vocabs.anubisSigningSecretName" -}}
+{{- if .Values.gateway.anubis.signingKey.secret.create -}}
+{{- default (printf "%s-anubis-signing" (include "vocabs.fullname" .)) .Values.gateway.anubis.signingKey.secret.name -}}
+{{- else -}}
+{{- .Values.gateway.anubis.signingKey.secret.existingSecret -}}
+{{- end -}}
+{{- end -}}
 {{- define "vocabs.profile" -}}
 {{- $profiles := (.Files.Get "compatibility.yaml" | fromYaml).profiles -}}
 {{- $version := required "stack.version is required" .Values.stack.version -}}

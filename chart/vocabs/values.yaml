@@ -101,8 +101,12 @@ fuseki:
     tls: {enabled: false, secretName: ""}
   auth:
     enabled: false
-    existingSecret: ""
-    secretKey: shiro.ini
+    secret:
+      create: false
+      existingSecret: ""
+      name: ""
+      key: shiro.ini
+    initialUsername: admin
     revision: ""
   terminationGracePeriodSeconds: 120
   java: {xms: 512m, xmx: 2g}
@@ -224,8 +228,11 @@ gateway:
       existingConfigMap: "" # Full policy.yaml; must preserve the selected store configuration.
       revision: "" # Bump to roll out external policy changes.
     signingKey:
-      existingSecret: "" # Required when ingress.enabled=true; backend-only development may omit it.
-      key: ed25519-private-key-hex # Upstream expects a hex-encoded 32-byte Ed25519 seed.
+      secret:
+        create: false
+        name: ""
+        existingSecret: ""
+        key: ed25519-private-key-hex # A 32-byte Ed25519 seed encoded as 64 lowercase hex characters.
     store: {backend: bbolt} # Only bbolt or memory; no Redis/Valkey or operator.
     persistence:
       enabled: true # bbolt on PVC; false uses emptyDir and loses state on pod replacement.

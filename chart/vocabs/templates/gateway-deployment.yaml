@@ -49,13 +49,11 @@ spec:
             - {name: TARGET_HOST, value: {{ $public.authority | quote }}}
             - {name: REDIRECT_DOMAINS, value: {{ $public.authority | quote }}}
             - {name: COOKIE_SECURE, value: {{ eq $public.scheme "https" | quote }}}
-            {{- if .Values.gateway.anubis.signingKey.existingSecret }}
             - name: ED25519_PRIVATE_KEY_HEX
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.gateway.anubis.signingKey.existingSecret }}
-                  key: {{ .Values.gateway.anubis.signingKey.key }}
-            {{- end }}
+                  name: {{ include "vocabs.anubisSigningSecretName" . }}
+                  key: {{ .Values.gateway.anubis.signingKey.secret.key }}
           securityContext:
             {{- toYaml .Values.gateway.anubis.securityContext | nindent 12 }}
           resources:

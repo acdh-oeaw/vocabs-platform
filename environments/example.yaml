@@ -7,7 +7,11 @@ gateway:
   replicas: 1
   anubis:
     signingKey:
-      existingSecret: change-me-anubis-signing-key # Create this Secret outside Helm before installation.
+      secret:
+        create: false
+        name: ""
+        existingSecret: change-me-anubis-signing-key # Provide this Secret outside Helm.
+        key: ed25519-private-key-hex
     persistence:
       storageClassName: CHANGE-ME-GATEWAY-STORAGECLASS
 skosmos:

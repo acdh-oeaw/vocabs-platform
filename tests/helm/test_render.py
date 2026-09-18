@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Cluster-free assertions on real rendered manifests, including negative cases."""
-import copy, subprocess, tempfile, unittest
+import copy, re, subprocess, tempfile, unittest
 from pathlib import Path
 import yaml
 CHART = 'chart/vocabs'
@@ -41,6 +41,7 @@ class Rendering(unittest.TestCase):
         self.assertNotIn('fuseki-shiro', [volume['name'] for volume in sts['spec']['template']['spec']['volumes']])
         self.assertNotIn('/fuseki/shiro.ini', [mount['mountPath'] for mount in fuseki_container['volumeMounts']])
         self.assertNotIn('vocabs.acdh.oeaw.ac.at/fuseki-auth-revision', sts['spec']['template']['metadata'].get('annotations', {}))
+        self.assertFalse(any(d['kind'] == 'Secret' for d in docs))
         self.assertEqual(sts['spec']['template']['spec']['volumes'][1]['persistentVolumeClaim']['claimName'], 'vocabs-data-r001')
         for d in docs:
             if d['kind'] == 'Service': self.assertEqual(d['spec']['type'], 'ClusterIP')
@@ -94,6 +95,16 @@ class Rendering(unittest.TestCase):
         self.assertEqual(public['metadata']['annotations']['cert-manager.io/cluster-issuer'], 'acdh-prod')
         self.assertTrue(public['spec']['rules'][0]['http']['paths'][0]['backend']['service']['name'].endswith('-gateway'))
 
+        gateway = find(docs, 'Deployment', 'gateway')
+        gateway_env = next(item for item in gateway['spec']['template']['spec']['containers'][0]['env'] if item['name'] == 'ED25519_PRIVATE_KEY_HEX')
+        self.assertEqual(gateway_env['valueFrom']['secretKeyRef'], {'name': 'vocabs-platform-anubis-signing', 'key': 'ed25519-private-key-hex'})
+        anubis_secret = find(docs, 'Secret', 'anubis-signing')
+        self.assertEqual(anubis_secret['type'], 'Opaque')
+        self.assertEqual(anubis_secret['metadata']['annotations']['helm.sh/resource-policy'], 'keep')
+        generated_key = anubis_secret['stringData']['ed25519-private-key-hex']
+        self.assertRegex(generated_key, r'^[0-9a-f]{64}$')
+        self.assertNotIn(generated_key, str(gateway))
+
         fuseki = ingresses['vocabs-platform-dev-vocabs-fuseki-admin']
         self.assertEqual(fuseki['spec']['ingressClassName'], 'nginx')
         self.assertEqual(fuseki['spec']['rules'][0]['host'], 'jena-vp-dev.acdh-cluster-2.arz.oeaw.ac.at')
@@ -114,6 +125,12 @@ class Rendering(unittest.TestCase):
         self.assertEqual(shiro_mount['subPath'], 'shiro.ini')
         self.assertTrue(shiro_mount['readOnly'])
         self.assertEqual(sts['spec']['template']['metadata']['annotations']['vocabs.acdh.oeaw.ac.at/fuseki-auth-revision'], '')
+        shiro_secret = find(docs, 'Secret', 'fuseki-shiro')
+        self.assertEqual(shiro_secret['type'], 'Opaque')
+        self.assertEqual(shiro_secret['metadata']['annotations']['helm.sh/resource-policy'], 'keep')
+        self.assertIn('shiro.ini', shiro_secret['stringData'])
+        self.assertIn('admin = ', shiro_secret['stringData']['shiro.ini'])
+        self.assertNotIn('password', shiro_secret['stringData']['shiro.ini'].lower())
 
         swagger = ingresses['vocabs-platform-dev-vocabs-vocabsapi']
         self.assertEqual(swagger['spec']['ingressClassName'], 'nginx')
@@ -136,8 +153,34 @@ class Rendering(unittest.TestCase):
         self.assertFalse(any(d['kind'] == 'Ingress' for d in docs))
         self.assertNotIn('0.0.0.0/0', str(docs))
 
+    def test_fuseki_auth_external_secret_mode(self):
+        values = {'fuseki': {'auth': {'enabled': True, 'secret': {'create': False, 'existingSecret': 'test-existing-shiro', 'name': ''}}}}
+        docs = render(values)
+        self.assertFalse(any(d['kind'] == 'Secret' for d in docs))
+        sts = find(docs, 'StatefulSet', 'fuseki')
+        shiro_volume = next(volume for volume in sts['spec']['template']['spec']['volumes'] if volume['name'] == 'fuseki-shiro')
+        self.assertEqual(shiro_volume['secret']['secretName'], 'test-existing-shiro')
+
     def test_fuseki_auth_requires_external_secret(self):
-        render({'fuseki': {'auth': {'enabled': True, 'existingSecret': ''}}}, fail='fuseki.auth.existingSecret is required')
+        render({'fuseki': {'auth': {'enabled': True, 'secret': {'create': False, 'existingSecret': '', 'name': ''}}}}, fail='fuseki.auth.secret.existingSecret is required')
+
+    def test_fuseki_auth_rejects_conflicting_secret_modes(self):
+        render({'fuseki': {'auth': {'enabled': True, 'secret': {'create': True, 'existingSecret': 'something', 'name': 'managed'}}}}, fail='fuseki.auth.secret.existingSecret must be empty')
+
+    def test_anubis_auth_external_secret_mode(self):
+        values = {'global': {'publicUrl': 'https://vocabs.example.org/'}, 'gateway': {'enabled': True, 'anubis': {'signingKey': {'secret': {'create': False, 'existingSecret': 'test-anubis-secret', 'name': ''}}}}}
+        docs = render(values)
+        self.assertFalse(any(d['kind'] == 'Secret' and d['metadata']['name'].endswith('anubis-signing') for d in docs))
+        gateway = find(docs, 'Deployment', 'gateway')
+        signer = next(item for item in gateway['spec']['template']['spec']['containers'][0]['env'] if item['name'] == 'ED25519_PRIVATE_KEY_HEX')
+        self.assertEqual(signer['valueFrom']['secretKeyRef'], {'name': 'test-anubis-secret', 'key': 'ed25519-private-key-hex'})
+
+    def test_anubis_auth_rejects_invalid_secret_modes(self):
+        base = {'global': {'publicUrl': 'https://vocabs.example.org/'}}
+        base['gateway'] = {'enabled': True, 'anubis': {'signingKey': {'secret': {'create': False, 'existingSecret': '', 'name': ''}}}}
+        render(base, fail='gateway.anubis.signingKey.secret.existingSecret is required')
+        base['gateway']['anubis']['signingKey']['secret'] = {'create': True, 'existingSecret': 'conflict', 'name': 'managed'}
+        render(base, fail='gateway.anubis.signingKey.secret.existingSecret must be empty')
     def test_candidate_import(self):
         docs = render(candidate()); job = find(docs, 'Job')
         pod = job['spec']['template']['spec']

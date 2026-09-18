@@ -12,7 +12,7 @@ from test_render import render, find
 spec=importlib.util.spec_from_file_location('skosmos_public_url', 'scripts/skosmos-public-url.py')
 url_module=importlib.util.module_from_spec(spec); spec.loader.exec_module(url_module)
 URL='https://vocabs.example.org/'
-def values():return {'global':{'publicUrl':URL}, 'gateway':{'enabled':True,'anubis':{'signingKey':{'existingSecret':'test-anubis-signer'}}}, 'ingress':{'enabled':True}}
+def values():return {'global':{'publicUrl':URL}, 'gateway':{'enabled':True,'anubis':{'signingKey':{'secret':{'create':False,'existingSecret':'test-anubis-signer','name':'','key':'ed25519-private-key-hex'}}}}, 'ingress':{'enabled':True}}
 def config(docs):return find(docs,'ConfigMap','gateway-nginx')['data']['nginx.conf']
 class Gateway(unittest.TestCase):
     def test_institute_naming(self):
@@ -39,14 +39,14 @@ class Gateway(unittest.TestCase):
         self.assertEqual(ingress['tls'][0]['hosts'],['vocabs.example.org'])
     def test_public_ingress_requires_signing_key(self):
         for missing in ['', '   ']:
-            v=values();v['gateway']['anubis']['signingKey']['existingSecret']=missing
-            render(v,fail='Public Ingress requires gateway.anubis.signingKey.existingSecret')
-        v=values();v['gateway']['anubis']['signingKey']['existingSecret']=''
+            v=values();v['gateway']['anubis']['signingKey']['secret']['existingSecret']=missing
+            render(v,fail='gateway.anubis.signingKey.secret.existingSecret')
+        v=values();v['gateway']['anubis']['signingKey']['secret']['existingSecret']=''
         v['compatibility']={'allowUnsupported':True}
         v['gateway']['anubis']['persistence']={'enabled':False}
-        render(v,fail='Public Ingress requires gateway.anubis.signingKey.existingSecret')
+        render(v,fail='gateway.anubis.signingKey.secret.existingSecret')
         v['ingress']['enabled']=False
-        render(v) # Explicitly non-public development still works without a key.
+        render(v, fail='gateway.anubis.signingKey.secret.existingSecret')
         render() # Generic/backend-only defaults still work.
         docs=render(values())
         pod=find(docs,'Deployment','gateway')['spec']['template']['spec']
@@ -116,7 +116,7 @@ class Gateway(unittest.TestCase):
         example=yaml.safe_load(Path('config/anubis/policy.yaml.example').read_text())
         self.assertEqual(policy,example)
         self.assertEqual(policy['bots'][0]['action'],'ALLOW')
-        v=values();v['gateway']['anubis']={'persistence':{'enabled':False},'store':{'backend':'memory'},'policy':{'existingConfigMap':'reviewed-policy','revision':'r2'},'signingKey':{'existingSecret':'signer'}}
+        v=values();v['gateway']['anubis']={'persistence':{'enabled':False},'store':{'backend':'memory'},'policy':{'existingConfigMap':'reviewed-policy','revision':'r2'},'signingKey':{'secret':{'create':False,'existingSecret':'signer','name':'','key':'ed25519-private-key-hex'}}}
         docs=render(v);deploy=find(docs,'Deployment','gateway')
         self.assertFalse(any(d['kind']=='PersistentVolumeClaim' and d['metadata']['name'].endswith('gateway-state') for d in docs))
         self.assertFalse(any(d['kind']=='ConfigMap' and d['metadata']['name'].endswith('gateway-anubis') for d in docs))

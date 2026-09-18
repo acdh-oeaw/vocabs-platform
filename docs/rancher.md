@@ -114,7 +114,11 @@ gateway:
   enabled: true
   anubis:
     signingKey:
-      existingSecret: CHANGE-ME-ANUBIS-SIGNING-SECRET
+      secret:
+        create: true
+        name: vocabs-platform-anubis-signing
+        existingSecret: ""
+        key: ed25519-private-key-hex
     persistence:
       storageClassName: ceph-rbd-pool
 data:

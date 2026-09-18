@@ -25,4 +25,12 @@
 {{- end -}}
 {{- end -}}
 {{- if and .Values.swagger.ingress.enabled (not .Values.swagger.ingress.allowAnubisBypass) }}{{ fail "Separate Swagger Ingress bypasses Anubis; explicitly set swagger.ingress.allowAnubisBypass=true to acknowledge" }}{{ end -}}
-{{- if and .Values.ingress.enabled (not (trim .Values.gateway.anubis.signingKey.existingSecret)) }}{{ fail "Public Ingress requires gateway.anubis.signingKey.existingSecret: a persistent signing key keeps Anubis authentication cookies valid across restarts" }}{{ end -}}
+{{- if and .Values.gateway.enabled .Values.gateway.anubis.enabled }}
+{{- if not (trim .Values.gateway.anubis.signingKey.secret.key) }}{{ fail "gateway.anubis.signingKey.secret.key is required when Anubis is enabled" }}{{ end -}}
+{{- if .Values.gateway.anubis.signingKey.secret.create }}
+{{- if trim .Values.gateway.anubis.signingKey.secret.existingSecret }}{{ fail "gateway.anubis.signingKey.secret.existingSecret must be empty when signingKey.secret.create=true" }}{{ end -}}
+{{- else }}
+{{- if not (trim .Values.gateway.anubis.signingKey.secret.existingSecret) }}{{ fail "gateway.anubis.signingKey.secret.existingSecret is required when Anubis is enabled and managed signing-key creation is disabled" }}{{ end -}}
+{{- if trim .Values.gateway.anubis.signingKey.secret.name }}{{ fail "gateway.anubis.signingKey.secret.name must be empty when using an external Anubis signing Secret" }}{{ end -}}
+{{- end -}}
+{{- end -}}

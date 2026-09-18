@@ -21,11 +21,11 @@ ConfigMap it does not own. Keep the selected store contract (`bbolt`, path
 probe relies on it. Do not add an HA backend or allow more than one replica in
 this iteration.
 
-bbolt persistence does not preserve the signing key automatically. Supply an
-existing Secret via gateway.anubis.signingKey for tokens to survive restarts;
-public ingress rendering fails without this reference. In ingress-disabled
-development only, omission permits a random key which invalidates tokens after
-restart. Provision and verify the referenced Secret before installation; Helm
-rendering cannot verify its existence or key contents. No Secret material
-belongs in policy examples or Git. See docs/gateway.md for state and rollout
-requirements. No Anubis Operator or cluster-scoped resources are deployed.
+bbolt persistence does not preserve the signing key automatically. In the
+development profile the chart creates and preserves the signing Secret; the
+initial value is a 64-character lowercase hex Ed25519 seed generated from
+cryptographically random bytes. The chart also supports an external Secret via
+`gateway.anubis.signingKey.secret.existingSecret` when `create: false`.
+An existing managed Secret is preserved by Helm lookup, and a missing key fails
+rendering rather than rotating credentials. No Secret material belongs in
+policy examples or Git. See docs/gateway.md for state and rollout requirements.

@@ -107,8 +107,9 @@ redirects, CORS, routing and proxy headers. TLS stays at Ingress.
 `global.publicUrl` supplies the ingress host, canonical redirects, public scheme,
 Anubis URL and generated Skosmos baseHref. External ConfigMaps must pass the
 provided URL validator before deployment. Public ingress requires
-`gateway.anubis.signingKey.existingSecret`; provision this persistent signing key
-outside Git before installation. Backend-only rendering requires no key.
+`gateway.anubis.signingKey.secret`; the development profile creates the
+persistent signing Secret automatically, while external installations can use
+`create: false` with `existingSecret`. Backend-only rendering requires no key.
 Anubis redirect domains retain any public URL port; Ingress hosts do not.
 Generic defaults disable the gateway
 so URL-free backend rendering still works; the environment example enables it.

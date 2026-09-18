@@ -10,8 +10,11 @@ gateway:
   replicas: 1
   anubis:
     signingKey:
-      existingSecret: vocabs-platform-anubis-signing
-      key: ed25519-private-key-hex
+      secret:
+        create: true
+        name: vocabs-platform-anubis-signing
+        existingSecret: ""
+        key: ed25519-private-key-hex
     persistence:
       storageClassName: ceph-rbd-pool
 skosmos:
@@ -31,8 +34,12 @@ fuseki:
     limits: {cpu: "2", memory: 3Gi}
   auth:
     enabled: true
-    existingSecret: vocabs-fuseki-shiro
-    secretKey: shiro.ini
+    secret:
+      create: true
+      existingSecret: ""
+      name: vocabs-fuseki-shiro
+      key: shiro.ini
+    initialUsername: admin
     revision: ""
   ingress:
     enabled: true

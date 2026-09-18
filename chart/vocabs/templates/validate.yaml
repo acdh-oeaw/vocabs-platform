@@ -12,8 +12,13 @@
 {{- end -}}
 {{- if ne .Values.fuseki.image.tag .Values.imports.image.tag }}{{ fail "Runtime and importer manual tags must match" }}{{ end -}}
 {{- if .Values.fuseki.auth.enabled }}
-{{- if not (trim .Values.fuseki.auth.existingSecret) }}{{ fail "fuseki.auth.existingSecret is required when Fuseki authentication is enabled; provide an externally managed Secret" }}{{ end -}}
-{{- if not (trim .Values.fuseki.auth.secretKey) }}{{ fail "fuseki.auth.secretKey is required when Fuseki authentication is enabled" }}{{ end -}}
+{{- if not (trim .Values.fuseki.auth.secret.key) }}{{ fail "fuseki.auth.secret.key is required when Fuseki authentication is enabled" }}{{ end -}}
+{{- if .Values.fuseki.auth.secret.create }}
+{{- if trim .Values.fuseki.auth.secret.existingSecret }}{{ fail "fuseki.auth.secret.existingSecret must be empty when fuseki.auth.secret.create=true" }}{{ end -}}
+{{- else }}
+{{- if not (trim .Values.fuseki.auth.secret.existingSecret) }}{{ fail "fuseki.auth.secret.existingSecret is required when managed Fuseki authentication is disabled" }}{{ end -}}
+{{- if trim .Values.fuseki.auth.secret.name }}{{ fail "fuseki.auth.secret.name must be empty when using an external Fuseki authentication Secret" }}{{ end -}}
+{{- end -}}
 {{- end -}}
 {{- $names := dict -}}
 {{- range .Values.data.managedClaims -}}

@@ -167,21 +167,14 @@ bbolt data; memory requires persistence disabled. Neither permits horizontal
 scaling. Future HA needs a separately designed shared backend; not this iteration.
 Gateway updates have a short availability gap; do not promise zero downtime.
 
-Set gateway.anubis.signingKey.existingSecret to an existing Secret with the
-hex-encoded 32-byte Ed25519 seed under the configured key. This is separate from
-bbolt persistence. When `ingress.enabled=true`, Helm rendering fails without
-this Secret reference, even if compatibility.allowUnsupported is enabled or
-Anubis persistence is disabled. There is no public-ingress development bypass.
-The chart checks the reference, not the live Secret or its contents: provision
-and verify it before installation. The example names a placeholder Secret and
-does not create it or contain key material.
-
-Backend-only/default rendering and an ingress-disabled development gateway may
-omit the key. In that case upstream generates a random key and existing challenge
-tokens become invalid after restart; this exception is not for public deployments.
-A gateway exposed publicly by infrastructure outside this chart must also supply
-the persistent key; Helm cannot detect external exposure.
-Generate/manage secrets outside Git and restart the gateway after rotating one.
+The development profile manages the Anubis signing Secret with
+`gateway.anubis.signingKey.secret.create: true`. It generates a 32-byte
+Ed25519 seed as 64 lowercase hexadecimal characters and preserves the existing
+Secret on upgrades. External installations can set `create: false` and provide
+`secret.existingSecret`; managed and external settings cannot be combined.
+This Secret is separate from bbolt persistence and is kept on Helm uninstall.
+Changing it is an explicit rotation operation: restart the Gateway afterward,
+and expect existing Anubis authentication cookies/JWTs to become invalid.
 
 Anubis probes invoke its native `-healthcheck` command against the unexposed
 metrics listener, and Nginx probes execute wget against loopback `/healthz`.

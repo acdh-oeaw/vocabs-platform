@@ -5,8 +5,15 @@ Imports enabled: {{ .Values.imports.job.enabled }}. Disable after the explicit i
 External ConfigMaps require an explicit config.revision bump to restart consumers.
 {{ if .Values.fuseki.auth.enabled }}
 Fuseki Shiro authentication: enabled
-Fuseki Shiro Secret: {{ .Values.fuseki.auth.existingSecret }} (key: {{ .Values.fuseki.auth.secretKey }})
+Fuseki Shiro Secret: {{ include "vocabs.fusekiAuthSecretName" . }} (key: {{ .Values.fuseki.auth.secret.key }})
 Fuseki admin URL: https://{{ .Values.fuseki.ingress.host }}/
+{{ if .Values.fuseki.auth.secret.create }}
+Replace the initial generated credentials after installation; do not print them in NOTES.
+{{ end }}
+{{ end }}
+{{ if and .Values.gateway.enabled .Values.gateway.anubis.enabled }}
+Anubis signing Secret: {{ include "vocabs.anubisSigningSecretName" . }} (key: {{ .Values.gateway.anubis.signingKey.secret.key }})
+Anubis signing-key management: {{ if .Values.gateway.anubis.signingKey.secret.create }}chart-managed persistent Secret{{ else }}externally managed Secret{{ end }}
 {{ end }}
 Read docs/imports.md before data activation; cache rollouts are not an atomic cutover.
 

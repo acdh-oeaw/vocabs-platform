@@ -408,10 +408,32 @@
             "enabled": {
               "type": "boolean"
             },
-            "existingSecret": {
-              "type": "string"
+            "secret": {
+              "type": "object",
+              "properties": {
+                "create": {
+                  "type": "boolean"
+                },
+                "existingSecret": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "key": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "create",
+                "existingSecret",
+                "name",
+                "key"
+              ]
             },
-            "secretKey": {
+            "initialUsername": {
               "type": "string",
               "minLength": 1
             },
@@ -422,8 +444,8 @@
           "additionalProperties": false,
           "required": [
             "enabled",
-            "existingSecret",
-            "secretKey",
+            "secret",
+            "initialUsername",
             "revision"
           ]
         },
@@ -1052,14 +1074,33 @@
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "existingSecret": {
-                  "type": "string"
-                },
-                "key": {
-                  "type": "string",
-                  "minLength": 1
+                "secret": {
+                  "type": "object",
+                  "properties": {
+                    "create": {
+                      "type": "boolean"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "existingSecret": {
+                      "type": "string"
+                    },
+                    "key": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "create",
+                    "name",
+                    "existingSecret",
+                    "key"
+                  ]
                 }
-              }
+              },
+              "required": ["secret"]
             },
             "store": {
               "type": "object",
