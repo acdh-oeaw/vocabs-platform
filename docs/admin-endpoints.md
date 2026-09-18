@@ -83,9 +83,10 @@ ambiguous configuration.
 Review the legacy Shiro configuration against the Jena/Fuseki 5.4.0 runtime
 before migrating it unchanged. Prefer password hashes over plaintext passwords
 where supported. The supplied policy must leave `/$/ping` anonymously usable
-for Kubernetes startup/readiness/liveness probes while protecting the GUI and
-administrative APIs according to the reviewed policy. Helm does not impose or
-rewrite that policy.
+for Kubernetes probes, protect `/$/**` with `authcBasic,roles[admin]`, and leave
+all other paths anonymous for dataset/SPARQL access from Skosmos. Helm does not
+impose or rewrite that policy. A broad `/** = authcBasic` rule must not be used:
+it would force Skosmos to send credentials for anonymous SPARQL queries.
 
 The Secret is mounted read-only. Secret content changes require either bumping
 `fuseki.auth.revision` in the release values or explicitly restarting the
@@ -113,6 +114,19 @@ document itself is not rewritten, so its API base metadata remains unchanged.
 NetworkPolicy remains disabled in the development pilot. If enabled later,
 explicit policy must allow the NGINX ingress controller to reach Fuseki,
 Swagger, and Skosmos for the `/swagger.json` and `/rest/v1` proxy paths.
+
+Skosmos uses a dependency-aware probe split. Its liveness probe is
+`/swagger.json`, which is a static Swagger document in the Skosmos v3.3 image
+webroot and does not call Fuseki. Its readiness probe remains `/en/`, which
+exercises the application and its Fuseki dependency; this keeps a healthy PHP/
+Apache process from being restarted during a temporary Fuseki outage while
+still preventing dependent traffic from becoming Ready.
+
+The managed Shiro Secret is preserved with Helm `lookup`. A fresh `.4`
+installation receives the corrected policy; an existing `.3` installation with
+a manually corrected Secret keeps that policy. An existing installation still
+containing the old `/** = authcBasic` rule must have its Secret explicitly
+replaced or fixed by the operator and then Fuseki restarted.
 
 ## Anubis signing key
 

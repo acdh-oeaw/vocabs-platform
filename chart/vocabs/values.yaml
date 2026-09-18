@@ -52,7 +52,7 @@ skosmos:
   securityContext:
     allowPrivilegeEscalation: false
   readinessProbe: {path: /en/, initialDelaySeconds: 5, periodSeconds: 10, timeoutSeconds: 5, failureThreshold: 3}
-  livenessProbe: {path: /en/, initialDelaySeconds: 30, periodSeconds: 20, timeoutSeconds: 5, failureThreshold: 6}
+  livenessProbe: {path: /swagger.json, initialDelaySeconds: 30, periodSeconds: 20, timeoutSeconds: 5, failureThreshold: 6}
 
 # Passed to official varnish-cache 0.1.3; inspect its values before adding options.
 varnish:

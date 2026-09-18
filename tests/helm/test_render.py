@@ -131,6 +131,11 @@ class Rendering(unittest.TestCase):
         self.assertIn('shiro.ini', shiro_secret['stringData'])
         self.assertIn('admin = ', shiro_secret['stringData']['shiro.ini'])
         self.assertNotIn('password', shiro_secret['stringData']['shiro.ini'].lower())
+        shiro_policy = shiro_secret['stringData']['shiro.ini']
+        self.assertIn('/$/ping = anon', shiro_policy)
+        self.assertIn('/$/** = authcBasic,roles[admin]', shiro_policy)
+        self.assertIn('/** = anon', shiro_policy)
+        self.assertNotIn('/** = authcBasic', [line.strip() for line in shiro_policy.splitlines()])
 
         swagger = ingresses['vocabs-platform-dev-vocabs-vocabsapi']
         self.assertEqual(swagger['spec']['ingressClassName'], 'nginx')
@@ -147,6 +152,10 @@ class Rendering(unittest.TestCase):
         self.assertEqual(swagger_container['env'][0]['value'], '/swagger.json')
         self.assertEqual(find(docs, 'Service', 'fuseki')['spec']['type'], 'ClusterIP')
         self.assertEqual(find(docs, 'Service', 'swagger')['spec']['type'], 'ClusterIP')
+        skosmos = find(docs, 'Deployment', 'skosmos')
+        skosmos_container = skosmos['spec']['template']['spec']['containers'][0]
+        self.assertEqual(skosmos_container['livenessProbe']['httpGet']['path'], '/swagger.json')
+        self.assertEqual(skosmos_container['readinessProbe']['httpGet']['path'], '/en/')
 
     def test_private_ingresses_disabled_by_default(self):
         docs = render()

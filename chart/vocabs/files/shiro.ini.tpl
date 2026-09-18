@@ -9,4 +9,5 @@ admin = *
 
 [urls]
 /$/ping = anon
-/** = authcBasic
+/$/** = authcBasic,roles[admin]
+/** = anon
