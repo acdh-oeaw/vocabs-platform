@@ -55,3 +55,27 @@ jobs:
           skip_existing: true
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Sync Helm repository landing page
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin gh-pages:refs/remotes/origin/gh-pages
+          git rev-parse --verify origin/gh-pages
+
+          worktree="$(mktemp -d "$RUNNER_TEMP/gh-pages.XXXXXX")"
+          cleanup() {
+            git worktree remove --force "$worktree"
+          }
+          trap cleanup EXIT
+
+          git worktree add "$worktree" origin/gh-pages
+          cp index.html "$worktree/index.html"
+          touch "$worktree/.nojekyll"
+
+          git -C "$worktree" add index.html .nojekyll
+          if git -C "$worktree" diff --cached --quiet; then
+            echo "Landing page unchanged"
+          else
+            git -C "$worktree" commit -m "docs: update Helm repository landing page"
+            git -C "$worktree" push origin HEAD:gh-pages
+          fi
