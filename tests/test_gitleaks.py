@@ -30,11 +30,19 @@ def scan(path, value, expected):
 
 
 if __name__ == '__main__':
-    for path in ('chart/vocabs/values.yaml', 'tests/gateway/test_gateway.py'):
+    allowed_paths = (
+        'chart/vocabs/values.yaml',
+        'environments/example.yaml',
+        'environments/vocabs-platform-dev.yaml',
+        'docs/rancher.md',
+        'tests/gateway/test_gateway.py',
+        'tests/helm/test_render.py',
+    )
+    for path in allowed_paths:
         scan(path, FIELD_NAME, set())
         scan(path, secrets.token_hex(32), {'generic-api-key'})
         scan(path, FIELD_NAME + '-unexpected', {'generic-api-key'})
     scan('other.yaml', FIELD_NAME, {'generic-api-key'})
     # A provider-specific rule must also remain active.
     scan('other.yaml', 'ghp_' + secrets.token_hex(18), {'github-pat'})
-    print('Gitleaks: 8 scope/detection checks passed; temporary fixtures removed')
+    print('Gitleaks: 20 scope/detection checks passed; temporary fixtures removed')

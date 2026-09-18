@@ -8,13 +8,16 @@ useDefault = true
 id = "generic-api-key"
 
 [[rules.allowlists]]
-description = "Allow only the known Anubis signing-key field name in the exact values files where it is intentionally referenced"
+description = "Allow only the known Anubis signing-key field name in exact configuration and test files where it is intentionally referenced"
 targetRules = ["generic-api-key"]
 condition = "AND"
 regexTarget = "secret"
 paths = [
   '''^chart/vocabs/values\.yaml$''',
+  '''^environments/example\.yaml$''',
   '''^environments/vocabs-platform-dev\.yaml$''',
-  '''^tests/gateway/test_gateway\.py$'''
+  '''^docs/rancher\.md$''',
+  '''^tests/gateway/test_gateway\.py$''',
+  '''^tests/helm/test_render\.py$'''
 ]
 regexes = ['''^ed25519-private-key-hex$''']
