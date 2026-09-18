@@ -11,6 +11,10 @@
 {{- if or (ne .Values.varnish.server.image.tag $p.varnish.version) (ne .Values.swagger.image.tag $p.swagger.version) }}{{ fail "Varnish/Swagger image overrides require compatibility.allowUnsupported=true" }}{{ end -}}
 {{- end -}}
 {{- if ne .Values.fuseki.image.tag .Values.imports.image.tag }}{{ fail "Runtime and importer manual tags must match" }}{{ end -}}
+{{- if .Values.fuseki.auth.enabled }}
+{{- if not (trim .Values.fuseki.auth.existingSecret) }}{{ fail "fuseki.auth.existingSecret is required when Fuseki authentication is enabled; provide an externally managed Secret" }}{{ end -}}
+{{- if not (trim .Values.fuseki.auth.secretKey) }}{{ fail "fuseki.auth.secretKey is required when Fuseki authentication is enabled" }}{{ end -}}
+{{- end -}}
 {{- $names := dict -}}
 {{- range .Values.data.managedClaims -}}
 {{- if hasKey $names .name }}{{ fail "Duplicate managed PVC name" }}{{ end -}}

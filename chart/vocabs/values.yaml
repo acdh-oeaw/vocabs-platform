@@ -99,6 +99,11 @@ fuseki:
     className: ""
     annotations: {}
     tls: {enabled: false, secretName: ""}
+  auth:
+    enabled: false
+    existingSecret: ""
+    secretKey: shiro.ini
+    revision: ""
   terminationGracePeriodSeconds: 120
   java: {xms: 512m, xmx: 2g}
   persistence:

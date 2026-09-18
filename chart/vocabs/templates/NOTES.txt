@@ -3,6 +3,11 @@ Development scaffold: build/publish profile images and validate real RDF before 
 Active PVC: {{ .Values.data.activeClaim }}. Database PVCs are retained on removal/uninstall.
 Imports enabled: {{ .Values.imports.job.enabled }}. Disable after the explicit import attempt.
 External ConfigMaps require an explicit config.revision bump to restart consumers.
+{{ if .Values.fuseki.auth.enabled }}
+Fuseki Shiro authentication: enabled
+Fuseki Shiro Secret: {{ .Values.fuseki.auth.existingSecret }} (key: {{ .Values.fuseki.auth.secretKey }})
+Fuseki admin URL: https://{{ .Values.fuseki.ingress.host }}/
+{{ end }}
 Read docs/imports.md before data activation; cache rollouts are not an atomic cutover.
 
 {{ if .Values.gateway.enabled }}

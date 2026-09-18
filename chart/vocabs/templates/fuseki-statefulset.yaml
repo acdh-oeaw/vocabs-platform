@@ -26,6 +26,9 @@ spec:
         {{- end }}
         checksum/config: {{ include (print $.Template.BasePath "/fuseki-configmap.yaml") . | sha256sum }}
         vocabs.acdh.oeaw.ac.at/config-revision: {{ .Values.fuseki.config.revision | quote }}
+        {{- if .Values.fuseki.auth.enabled }}
+        vocabs.acdh.oeaw.ac.at/fuseki-auth-revision: {{ .Values.fuseki.auth.revision | quote }}
+        {{- end }}
     spec:
       serviceAccountName: {{ include "vocabs.sa" . }}
       automountServiceAccountToken: false
@@ -71,6 +74,12 @@ spec:
               readOnly: true
             - name: database
               mountPath: {{ .Values.fuseki.persistence.mountPath }}
+            {{- if .Values.fuseki.auth.enabled }}
+            - name: fuseki-shiro
+              mountPath: /fuseki/shiro.ini
+              subPath: shiro.ini
+              readOnly: true
+            {{- end }}
       volumes:
         - name: config
           configMap:
@@ -78,3 +87,11 @@ spec:
         - name: database
           persistentVolumeClaim:
             claimName: {{ .Values.data.activeClaim }}
+        {{- if .Values.fuseki.auth.enabled }}
+        - name: fuseki-shiro
+          secret:
+            secretName: {{ .Values.fuseki.auth.existingSecret | quote }}
+            items:
+              - key: {{ .Values.fuseki.auth.secretKey | quote }}
+                path: shiro.ini
+        {{- end }}

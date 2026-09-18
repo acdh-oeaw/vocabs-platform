@@ -402,6 +402,31 @@
           },
           "additionalProperties": false
         },
+        "auth": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "existingSecret": {
+              "type": "string"
+            },
+            "secretKey": {
+              "type": "string",
+              "minLength": 1
+            },
+            "revision": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "enabled",
+            "existingSecret",
+            "secretKey",
+            "revision"
+          ]
+        },
         "java": {
           "type": "object",
           "properties": {

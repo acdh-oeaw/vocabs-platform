@@ -37,6 +37,10 @@ class Rendering(unittest.TestCase):
         self.assertEqual(sts['spec']['replicas'], 1)
         self.assertEqual(sts['spec']['podManagementPolicy'], 'OrderedReady')
         self.assertNotIn('volumeClaimTemplates', sts['spec'])
+        fuseki_container = sts['spec']['template']['spec']['containers'][0]
+        self.assertNotIn('fuseki-shiro', [volume['name'] for volume in sts['spec']['template']['spec']['volumes']])
+        self.assertNotIn('/fuseki/shiro.ini', [mount['mountPath'] for mount in fuseki_container['volumeMounts']])
+        self.assertNotIn('vocabs.acdh.oeaw.ac.at/fuseki-auth-revision', sts['spec']['template']['metadata'].get('annotations', {}))
         self.assertEqual(sts['spec']['template']['spec']['volumes'][1]['persistentVolumeClaim']['claimName'], 'vocabs-data-r001')
         for d in docs:
             if d['kind'] == 'Service': self.assertEqual(d['spec']['type'], 'ClusterIP')
@@ -93,10 +97,21 @@ class Rendering(unittest.TestCase):
         fuseki = ingresses['vocabs-platform-dev-vocabs-fuseki-admin']
         self.assertEqual(fuseki['spec']['ingressClassName'], 'nginx')
         self.assertEqual(fuseki['spec']['rules'][0]['host'], 'jena-vp-dev.acdh-cluster-2.arz.oeaw.ac.at')
-        self.assertNotIn('tls', fuseki['spec'])
-        self.assertNotIn('cert-manager.io/cluster-issuer', fuseki['metadata'].get('annotations', {}))
+        self.assertEqual(fuseki['spec']['tls'][0]['secretName'], 'jena-vp-dev-tls')
+        self.assertEqual(fuseki['metadata']['annotations']['cert-manager.io/cluster-issuer'], 'acdh-prod')
         self.assertNotIn('nginx.ingress.kubernetes.io/whitelist-source-range', fuseki['metadata'].get('annotations', {}))
         self.assertEqual(fuseki['spec']['rules'][0]['http']['paths'][0]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-fuseki')
+
+        sts = find(docs, 'StatefulSet', 'fuseki')
+        fuseki_container = sts['spec']['template']['spec']['containers'][0]
+        shiro_volume = next(volume for volume in sts['spec']['template']['spec']['volumes'] if volume['name'] == 'fuseki-shiro')
+        shiro_mount = next(mount for mount in fuseki_container['volumeMounts'] if mount['name'] == 'fuseki-shiro')
+        self.assertEqual(shiro_volume['secret']['secretName'], 'vocabs-fuseki-shiro')
+        self.assertEqual(shiro_volume['secret']['items'][0], {'key': 'shiro.ini', 'path': 'shiro.ini'})
+        self.assertEqual(shiro_mount['mountPath'], '/fuseki/shiro.ini')
+        self.assertEqual(shiro_mount['subPath'], 'shiro.ini')
+        self.assertTrue(shiro_mount['readOnly'])
+        self.assertEqual(sts['spec']['template']['metadata']['annotations']['vocabs.acdh.oeaw.ac.at/fuseki-auth-revision'], '')
 
         swagger = ingresses['vocabs-platform-dev-vocabs-vocabsapi']
         self.assertEqual(swagger['spec']['ingressClassName'], 'nginx')
@@ -118,6 +133,9 @@ class Rendering(unittest.TestCase):
         docs = render()
         self.assertFalse(any(d['kind'] == 'Ingress' for d in docs))
         self.assertNotIn('0.0.0.0/0', str(docs))
+
+    def test_fuseki_auth_requires_external_secret(self):
+        render({'fuseki': {'auth': {'enabled': True, 'existingSecret': ''}}}, fail='fuseki.auth.existingSecret is required')
     def test_candidate_import(self):
         docs = render(candidate()); job = find(docs, 'Job')
         pod = job['spec']['template']['spec']
