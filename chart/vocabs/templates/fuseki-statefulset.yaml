@@ -48,6 +48,8 @@ spec:
             {{- toYaml .Values.fuseki.resources | nindent 12 }}
           args: ["--config=/config/assembler.ttl"]
           env:
+            - name: FUSEKI_BASE
+              value: /fuseki
             - name: EXPECTED_JENA_VERSION
               value: {{ (include "vocabs.profile" . | fromYaml).jena.version | quote }}
             - name: JAVA_TOOL_OPTIONS

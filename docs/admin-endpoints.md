@@ -35,9 +35,8 @@ Secret: vocabs-fuseki-shiro
 Key: shiro.ini
 Mount: /fuseki/shiro.ini
 ```
-The published Fuseki image was inspected and uses `WORKDIR=/fuseki` without a
-separate `FUSEKI_BASE` environment variable; Fuseki therefore uses `/fuseki`
-as its runtime base directory here.
+The StatefulSet explicitly sets `FUSEKI_BASE=/fuseki`. The database mount is
+`/fuseki/databases`, and the read-only Shiro mount is `/fuseki/shiro.ini`.
 
 The chart never stores credentials, password hashes or `shiro.ini` content.
 Create the Secret separately, for example:
@@ -59,6 +58,17 @@ The Secret is mounted read-only. Secret content changes require either bumping
 `fuseki.auth.revision` in the release values or explicitly restarting the
 Fuseki StatefulSet. The revision is a pod annotation only; Helm does not hash
 the external Secret.
+
+After deployment, operators can inspect the Fuseki startup logs without
+printing Secret contents:
+
+```bash
+kubectl -n vocabs-platform-dev logs statefulset/<release>-vocabs-fuseki -c fuseki | grep -E 'FUSEKI_BASE|shiro\.ini|Fuseki base'
+```
+
+The output should indicate a Fuseki base equivalent to `/fuseki` and that Shiro
+loaded `/fuseki/shiro.ini`. This repository does not claim that runtime check
+has passed until the updated chart is deployed.
 
 The live Skosmos 3.3 endpoint was verified at the public application host:
 `GET /swagger.json` returned HTTP 200 with a Swagger 2.0 JSON document. The

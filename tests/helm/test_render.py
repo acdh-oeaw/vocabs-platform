@@ -106,6 +106,8 @@ class Rendering(unittest.TestCase):
         fuseki_container = sts['spec']['template']['spec']['containers'][0]
         shiro_volume = next(volume for volume in sts['spec']['template']['spec']['volumes'] if volume['name'] == 'fuseki-shiro')
         shiro_mount = next(mount for mount in fuseki_container['volumeMounts'] if mount['name'] == 'fuseki-shiro')
+        fuseki_env = {item['name']: item['value'] for item in fuseki_container['env']}
+        self.assertEqual(fuseki_env['FUSEKI_BASE'], '/fuseki')
         self.assertEqual(shiro_volume['secret']['secretName'], 'vocabs-fuseki-shiro')
         self.assertEqual(shiro_volume['secret']['items'][0], {'key': 'shiro.ini', 'path': 'shiro.ini'})
         self.assertEqual(shiro_mount['mountPath'], '/fuseki/shiro.ini')
