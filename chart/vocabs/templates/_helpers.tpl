@@ -53,8 +53,9 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- define "vocabs.image" -}}
 {{- $p := include "vocabs.profile" .root | fromYaml -}}
 {{- $v := $p.jena.version -}}
-{{- if eq .component "skosmos" }}{{ $v = $p.skosmos.version }}{{ end -}}
-{{- $tag := default (printf "%s-%s" $v $p.imageRevision) .image.tag -}}
+{{- $revision := $p.imageRevision -}}
+{{- if eq .component "skosmos" }}{{ $v = $p.skosmos.version }}{{ $revision = default $p.imageRevision $p.skosmos.imageRevision }}{{ end -}}
+{{- $tag := default (printf "%s-%s" $v $revision) .image.tag -}}
 {{- if not (regexMatch "^[0-9]+[.][0-9]+.*" $tag) }}{{ fail "Image tags must start with an explicit version" }}{{ end -}}
 {{- printf "%s:%s" .image.repository $tag -}}
 {{- end -}}

@@ -6,6 +6,7 @@
   skosmos:baseHref {{ (include "vocabs.public" . | fromYaml).url | quote }} ;
   {{- end }}
   skosmos:serviceName "ACDH Vocabs (development)" ;
+  skosmos:customCss "resource/css/acdh/acdh-vocabs.css" ;
   skosmos:sparqlEndpoint <http://{{ include "varnish-cache.fullname" .Subcharts.varnish }}:{{ .Values.varnish.server.service.http.port }}/skosmos/sparql> ;
   skosmos:sparqlDialect "JenaText" ;
   skosmos:languages ( [ rdfs:label "en" ; rdf:value "en_GB.utf8" ] [ rdfs:label "de" ; rdf:value "de_DE.utf8" ] ) ;
