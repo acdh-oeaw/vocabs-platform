@@ -1,7 +1,7 @@
 stack:
   version: "2026.09.0-dev"
 global:
-  publicUrl: "https://vocabs-platform.acdh-dev.oeaw.ac.at/"
+  publicUrl: "https://vocabs-platform-dev.acdh-dev.oeaw.ac.at/"
   # The pilot uses the cluster's cert-manager ClusterIssuer and managed TLS secret.
 networkPolicy:
   enabled: false
@@ -54,14 +54,37 @@ imports:
       file: /data/example.rdf
 ingress:
   enabled: true
-  className: traefik
+  className: nginx
   annotations:
     cert-manager.io/cluster-issuer: acdh-prod
   tls:
     enabled: true
     secretName: vocabs-platform-dev-tls
 swagger:
-  enabled: false
+  enabled: true
+  specUrl: "https://vocabs-platform-dev.acdh-dev.oeaw.ac.at/swagger.json"
+  ingress:
+    enabled: true
+    allowAnubisBypass: true
+    host: vocabsapi-vp-dev.acdh-dev.oeaw.ac.at
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: acdh-prod
+      nginx.ingress.kubernetes.io/whitelist-source-range: "10.4.24.0/24,10.4.245.0/24"
+    tls:
+      enabled: true
+      secretName: vocabsapi-vp-dev-tls
+fuseki:
+  ingress:
+    enabled: true
+    host: jena-vp-dev.acdh-dev.oeaw.ac.at
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: acdh-prod
+      nginx.ingress.kubernetes.io/whitelist-source-range: "10.4.24.0/24,10.4.245.0/24"
+    tls:
+      enabled: true
+      secretName: jena-vp-dev-tls
 varnish:
   server:
     service:

@@ -368,6 +368,40 @@
           },
           "additionalProperties": false
         },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "host": {
+              "type": "string"
+            },
+            "className": {
+              "type": "string"
+            },
+            "annotations": {
+              "type": "object"
+            },
+            "tls": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "secretName": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "enabled",
+                "secretName"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
         "java": {
           "type": "object",
           "properties": {

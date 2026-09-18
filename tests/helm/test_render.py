@@ -73,6 +73,42 @@ class Rendering(unittest.TestCase):
         for i in ingress:
             backend=i['spec']['rules'][0]['http']['paths'][0]['backend']['service']['name']
             self.assertTrue(backend.endswith(('-gateway','-swagger')))
+
+    def test_development_public_and_private_ingresses(self):
+        values = yaml.safe_load(Path('environments/vocabs-platform-dev.yaml').read_text())
+        docs = render(values, release='vocabs-platform-dev', namespace='vocabs-platform-dev')
+        ingresses = {d['metadata']['name']: d for d in docs if d['kind'] == 'Ingress'}
+
+        public = ingresses['vocabs-platform-dev-vocabs-gateway']
+        self.assertEqual(public['spec']['ingressClassName'], 'nginx')
+        self.assertEqual(public['spec']['rules'][0]['host'], 'vocabs-platform-dev.acdh-dev.oeaw.ac.at')
+        self.assertEqual(public['spec']['tls'][0]['secretName'], 'vocabs-platform-dev-tls')
+        self.assertEqual(public['metadata']['annotations']['cert-manager.io/cluster-issuer'], 'acdh-prod')
+        self.assertTrue(public['spec']['rules'][0]['http']['paths'][0]['backend']['service']['name'].endswith('-gateway'))
+
+        expected_private = '10.4.24.0/24,10.4.245.0/24'
+        fuseki = ingresses['vocabs-platform-dev-vocabs-fuseki-admin']
+        self.assertEqual(fuseki['spec']['ingressClassName'], 'nginx')
+        self.assertEqual(fuseki['spec']['rules'][0]['host'], 'jena-vp-dev.acdh-dev.oeaw.ac.at')
+        self.assertEqual(fuseki['spec']['tls'][0]['secretName'], 'jena-vp-dev-tls')
+        self.assertEqual(fuseki['metadata']['annotations']['cert-manager.io/cluster-issuer'], 'acdh-prod')
+        self.assertEqual(fuseki['metadata']['annotations']['nginx.ingress.kubernetes.io/whitelist-source-range'], expected_private)
+        self.assertEqual(fuseki['spec']['rules'][0]['http']['paths'][0]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-fuseki')
+
+        swagger = ingresses['vocabs-platform-dev-vocabs-vocabsapi']
+        self.assertEqual(swagger['spec']['ingressClassName'], 'nginx')
+        self.assertEqual(swagger['spec']['rules'][0]['host'], 'vocabsapi-vp-dev.acdh-dev.oeaw.ac.at')
+        self.assertEqual(swagger['spec']['tls'][0]['secretName'], 'vocabsapi-vp-dev-tls')
+        self.assertEqual(swagger['metadata']['annotations']['cert-manager.io/cluster-issuer'], 'acdh-prod')
+        self.assertEqual(swagger['metadata']['annotations']['nginx.ingress.kubernetes.io/whitelist-source-range'], expected_private)
+        self.assertEqual(swagger['spec']['rules'][0]['http']['paths'][0]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-swagger')
+        self.assertEqual(find(docs, 'Service', 'fuseki')['spec']['type'], 'ClusterIP')
+        self.assertEqual(find(docs, 'Service', 'swagger')['spec']['type'], 'ClusterIP')
+
+    def test_private_ingresses_disabled_by_default(self):
+        docs = render()
+        self.assertFalse(any(d['kind'] == 'Ingress' for d in docs))
+        self.assertNotIn('0.0.0.0/0', str(docs))
     def test_candidate_import(self):
         docs = render(candidate()); job = find(docs, 'Job')
         pod = job['spec']['template']['spec']

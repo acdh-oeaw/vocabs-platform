@@ -93,6 +93,12 @@ fuseki:
     tag: ""
     pullPolicy: IfNotPresent
   service: {type: ClusterIP, port: 3030}
+  ingress:
+    enabled: false
+    host: ""
+    className: ""
+    annotations: {}
+    tls: {enabled: false, secretName: ""}
   terminationGracePeriodSeconds: 120
   java: {xms: 512m, xmx: 2g}
   persistence:

@@ -4,8 +4,10 @@ The public path is Ingress (TLS) → Gateway Service → Anubis :8080 → localh
 nginx-unprivileged :8081 → Skosmos → Varnish → Fuseki. Ingress is the external
 entry point; Anubis filters requests; Nginx handles routing, concept/DARIAH
 redirects, CORS and proxy headers; Skosmos serves vocabularies; Varnish caches
-SPARQL; Fuseki is the internal RDF database. Only Anubis has a gateway Service
-port. There are no direct Skosmos, Varnish or Fuseki public ingresses.
+SPARQL; Fuseki is the internal RDF database. Only Anubis has a public gateway
+Service port. There are no direct Skosmos or Varnish public ingresses; the
+optional Fuseki administrative Ingress is separately whitelisted. See
+[the administrative endpoint runbook](admin-endpoints.md).
 
 The gateway is one namespaced Deployment with two non-root containers and a
 single local bbolt backend on a separate optional retained PVC. Replicas above

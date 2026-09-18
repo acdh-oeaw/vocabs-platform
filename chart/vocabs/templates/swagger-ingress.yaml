@@ -4,7 +4,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "vocabs.fullname" . }}-swagger
+  name: {{ include "vocabs.fullname" . }}-vocabsapi
   labels:
     {{- include "vocabs.labels" . | nindent 4 }}
   annotations:

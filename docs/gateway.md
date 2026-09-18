@@ -205,4 +205,7 @@ Skosmos route; plan the controller reconciliation interval.
 Swagger remains separately configurable but a separate Swagger ingress bypasses
 Anubis. It defaults off and rendering requires explicit
 `swagger.ingress.allowAnubisBypass: true` to enable that path. This exception is
-for Swagger UI only; it cannot create a direct Skosmos/Fuseki/Varnish ingress.
+for Swagger UI only; it cannot create a direct Skosmos/Varnish ingress. The
+development Swagger and Fuseki administrative hosts are private DNS names and
+are restricted by the NGINX source CIDRs documented in
+[admin-endpoints.md](admin-endpoints.md).
