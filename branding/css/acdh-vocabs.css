@@ -127,3 +127,9 @@ footer {
     padding: 1.5rem 1rem;
   }
 }
+
+#skosmos-logo {
+  background-image: none;
+  height: auto;
+  width: auto;
+}
