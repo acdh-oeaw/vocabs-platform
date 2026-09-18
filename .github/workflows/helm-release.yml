@@ -2,6 +2,8 @@ name: Publish Helm chart
 on:
   push:
     branches: [main]
+    paths:
+      - "chart/vocabs/**"
   workflow_dispatch: {}
 permissions:
   contents: read
@@ -35,6 +37,41 @@ jobs:
         run: helm dependency build ./chart/vocabs
       - name: Lint chart
         run: helm lint ./chart/vocabs
+      - name: Guard immutable chart version
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          version="$(${PWD}/.venv/bin/python -c 'import yaml; print(yaml.safe_load(open("chart/vocabs/Chart.yaml"))["version"])')"
+          release="vocabs-${version}"
+          if gh release view "$release" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "GitHub release $release already exists; chart versions are immutable" >&2
+            exit 1
+          fi
+          .venv/bin/python - "$version" <<'PY'
+          import subprocess
+          import sys
+          import yaml
+
+          version = sys.argv[1]
+          index = yaml.safe_load(subprocess.check_output([
+              "git", "show", "origin/gh-pages:index.yaml"
+          ], text=True))
+          entries = index.get("entries", {}).get("vocabs", [])
+          versions = [entry.get("version") for entry in entries]
+          if version in versions:
+              raise SystemExit(
+                  f"Chart version {version} already exists in the published Helm index; "
+                  "chart versions are immutable"
+              )
+          duplicates = sorted({item for item in versions if versions.count(item) > 1})
+          if duplicates:
+              raise SystemExit(
+                  "Published Helm index contains duplicate chart versions: "
+                  + ", ".join(duplicates)
+              )
+          PY
       - name: Configure publishing identity
         run: |
           git config user.name "$GITHUB_ACTOR"
