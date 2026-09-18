@@ -12,4 +12,8 @@ description = "Kubernetes Secret field name, not signing-key material"
 condition = "AND"
 regexTarget = "secret"
 regexes = ['''^ed25519-private-key-hex$''']
-paths = ['''^chart/vocabs/values\.yaml$''', '''^tests/gateway/test_gateway\.py$''']
+paths = [
+  '''^chart/vocabs/values\.yaml$''',
+  '''^environments/vocabs-platform-dev\.yaml$''',
+  '''^tests/gateway/test_gateway\.py$'''
+]
