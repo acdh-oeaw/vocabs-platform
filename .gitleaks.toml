@@ -8,12 +8,13 @@ useDefault = true
 id = "generic-api-key"
 
 [[rules.allowlists]]
-description = "Kubernetes Secret field name, not signing-key material"
+description = "Allow only the known Anubis signing-key field name in the exact values files where it is intentionally referenced"
+targetRules = ["generic-api-key"]
 condition = "AND"
 regexTarget = "secret"
-regexes = ['''^ed25519-private-key-hex$''']
 paths = [
   '''^chart/vocabs/values\.yaml$''',
   '''^environments/vocabs-platform-dev\.yaml$''',
   '''^tests/gateway/test_gateway\.py$'''
 ]
+regexes = ['''^ed25519-private-key-hex$''']
