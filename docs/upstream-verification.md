@@ -15,7 +15,10 @@ Inspected on 2026-09-17. Source verification does not imply production acceptanc
   config.ttl.dist, dockerfiles/config/config-docker-compose.ttl and skosmos.ttl.
   Verified web root, extension directories, Jena 5.4.0 reference and **TDB2**
   upstream assembler. Our requested TDB1 candidate remains unvalidated against
-  production. Quay image tag/digest and runnable ACDH overlays remain release gates.
+  production. Verified upstream container reference: `quay.io/natlibfi/skosmos:v3.3`.
+  The non-tagged form `quay.io/natlibfi/skosmos:3.3` does not exist in the registry;
+  the Git tag is `v3.3` while the ACDH image tag remains `ghcr.io/acdh-oeaw/vocabs-skosmos:3.3-r1`.
+  Quay image tag/digest and runnable ACDH overlays remain release gates.
 - Apache Jena source: https://github.com/apache/jena/tree/jena-5.4.0
   Inspected loader scripts and `jena-text/src/main/java/org/apache/jena/query/text/cmd/textindexer.java`.
   The indexer accepts `--desc=assemblerFile`. Both official distributions were

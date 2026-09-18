@@ -58,6 +58,12 @@ class Rendering(unittest.TestCase):
         self.assertEqual(varnish['spec'].get('internalTrafficPolicy'), 'Cluster')
         self.assertEqual(varnish['spec']['ports'][0]['port'], 80)
 
+    def test_skosmos_profile_uses_real_upstream_tag(self):
+        profile = yaml.safe_load(Path('chart/vocabs/compatibility.yaml').read_text())['profiles']['2026.09.0-dev']
+        self.assertEqual(profile['skosmos']['version'], '3.3')
+        self.assertEqual(profile['skosmos']['upstreamTag'], 'v3.3')
+        self.assertEqual(f"ghcr.io/acdh-oeaw/vocabs-skosmos:{profile['skosmos']['version']}-{profile['imageRevision']}", 'ghcr.io/acdh-oeaw/vocabs-skosmos:3.3-r1')
+
     def test_example_and_swagger_ingress(self):
         v = yaml.safe_load(Path('environments/example.yaml').read_text())
         v['swagger'] = {'enabled':True, 'specUrl':'https://vocabs.example.org/swagger.json', 'ingress':{'enabled':True, 'host':'api.example.org','allowAnubisBypass':True}}

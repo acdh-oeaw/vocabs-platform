@@ -17,7 +17,7 @@ for component, image in [('skosmos', 'vocabs-skosmos'), ('fuseki-runtime', 'voca
     v = s['skosmos']['version'] if component == 'skosmos' else s['jena']['version']
     args = ['docker', 'build', '-f', f'images/{component}/Dockerfile', '-t', f'{a.registry}/{image}:{v}-{s["imageRevision"]}']
     if component == 'skosmos':
-        args += ['--build-arg', f'SKOSMOS_VERSION={s["skosmos"]["upstreamTag"]}']
+        args += ['--build-arg', f'SKOSMOS_UPSTREAM_TAG={s["skosmos"]["upstreamTag"]}']
     else:
         checksum = s['jena']['fusekiSha512' if component == 'fuseki-runtime' else 'toolsSha512']
         args += ['--build-arg', f'JAVA_BASE_IMAGE={a.java_base}', '--build-arg', f'JENA_VERSION={v}', '--build-arg', f'JENA_SHA512={checksum}']
