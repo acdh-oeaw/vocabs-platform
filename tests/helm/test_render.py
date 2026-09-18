@@ -50,6 +50,14 @@ class Rendering(unittest.TestCase):
             selectors = [d['spec']['podSelector']['matchLabels'], d['spec']['ingress'][0]['from'][0]['podSelector']['matchLabels']]
             for selector in selectors:
                 self.assertTrue(any(all(p.get(k) == v for k,v in selector.items()) for p in pods), selector)
+    def test_varnish_service_internal_only(self):
+        docs = render()
+        varnish = find(docs, 'Service', 'varnish')
+        self.assertEqual(varnish['spec']['type'], 'ClusterIP')
+        self.assertNotIn('externalTrafficPolicy', varnish['spec'])
+        self.assertEqual(varnish['spec'].get('internalTrafficPolicy'), 'Cluster')
+        self.assertEqual(varnish['spec']['ports'][0]['port'], 80)
+
     def test_example_and_swagger_ingress(self):
         v = yaml.safe_load(Path('environments/example.yaml').read_text())
         v['swagger'] = {'enabled':True, 'specUrl':'https://vocabs.example.org/swagger.json', 'ingress':{'enabled':True, 'host':'api.example.org','allowAnubisBypass':True}}

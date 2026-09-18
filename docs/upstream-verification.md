@@ -28,6 +28,9 @@ Inspected on 2026-09-17. Source verification does not imply production acceptanc
 - Swagger UI v5.17.14: https://github.com/swagger-api/swagger-ui/tree/v5.17.14
   Tag and Dockerfile verified. Official swaggerapi/swagger-ui image uses port
   8080 and configurable specification URL. No community chart is used.
+- Java runtime base image selected for Fuseki/Jena tooling: `docker.io/library/eclipse-temurin:21-jdk-jammy@sha256:4cfc63a7118da9267c17e2c988e1599d83d5d64a3832a760f0e77c7e8f6b29f7`.
+  Verified from Docker's registry manifest on 2026-09-18. The image is Ubuntu 22.04
+  (Jammy) based, Java 21, and pinned by immutable digest for the build workflow.
 - CI checkout v4.2.2 commit verified through GitHub's tag API. Helm 3.17.3 and
   kubeconform 0.6.7 archives have fixed SHA256 checksums in CI. Kubernetes schemas
   use version 1.31.0; validation requires network access to the schema registry.

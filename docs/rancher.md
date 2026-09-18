@@ -152,6 +152,12 @@ Replace Secret placeholders with existing namespace-local TLS/signing Secrets.
 Generate the Skosmos ConfigMap for this exact public URL, supply verified
 platform images, and set `networkPolicy.gatewayIngressPeers` for the actual
 Traefik pods/namespaces. Empty peers deny ingress; do not guess cluster labels.
+The GHCR packages for `vocabs-skosmos`, `vocabs-fuseki` and `vocabs-jena-tools`
+must be public for this pilot unless a future deployment intentionally adds an
+imagePullSecret in Kubernetes. The current chart does not store registry
+credentials in Helm values or Git; if package visibility cannot be changed via
+`GITHUB_TOKEN` permissions, a maintainer must switch the three packages to public
+in GitHub Packages manually before Rancher can pull them.
 See [gateway prerequisites](gateway.md), [Skosmos configuration](../config/skosmos/README.md),
 [storage](storage.md), and [candidate imports](imports.md). Install does not load
 RDF automatically. Keep the active/candidate workflow and revision safeguards.

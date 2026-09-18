@@ -65,6 +65,8 @@ varnish:
     image: {repository: docker.io/varnish, tag: "9.0.0", pullPolicy: IfNotPresent}
     service:
       type: ClusterIP
+      externalTrafficPolicy: ""
+      internalTrafficPolicy: Cluster
       http: {enabled: true, port: 80}
     ingress: {enabled: false}
     hostNetwork: false

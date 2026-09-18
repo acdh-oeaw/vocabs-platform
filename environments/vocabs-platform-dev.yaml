@@ -1,0 +1,73 @@
+stack:
+  version: "2026.09.0-dev"
+global:
+  publicUrl: "https://vocabs-platform.acdh-dev.oeaw.ac.at/"
+  # The pilot uses the cluster's cert-manager ClusterIssuer and managed TLS secret.
+networkPolicy:
+  enabled: false
+gateway:
+  enabled: true
+  replicas: 1
+  anubis:
+    signingKey:
+      existingSecret: vocabs-platform-anubis-signing
+      key: ed25519-private-key-hex
+    persistence:
+      storageClassName: ceph-rbd-pool
+skosmos:
+  replicas: 1
+  config:
+    existingConfigMap: ""
+    revision: ""
+  resources:
+    requests: {cpu: 100m, memory: 128Mi}
+    limits: {cpu: "1", memory: 512Mi}
+fuseki:
+  replicas: 1
+  persistence:
+    mountPath: /fuseki/databases
+  resources:
+    requests: {cpu: 500m, memory: 1Gi}
+    limits: {cpu: "2", memory: 3Gi}
+data:
+  activeClaim: vocabs-data-r001
+  revision: r001
+  managedClaims:
+    - name: vocabs-data-r001
+      size: 30Gi
+      storageClassName: ceph-rbd-pool
+      accessModes: [ReadWriteOnce]
+      retain: true
+    - name: vocabs-data-r002
+      size: 30Gi
+      storageClassName: ceph-rbd-pool
+      accessModes: [ReadWriteOnce]
+      retain: true
+imports:
+  job:
+    enabled: false
+  targetClaim: vocabs-data-r002
+  source:
+    type: pvc
+    pvc:
+      existingClaim: vocabs-import
+      file: /data/example.rdf
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    cert-manager.io/cluster-issuer: acdh-prod
+  tls:
+    enabled: true
+    secretName: vocabs-platform-dev-tls
+swagger:
+  enabled: false
+varnish:
+  server:
+    service:
+      type: ClusterIP
+      externalTrafficPolicy: ""
+      internalTrafficPolicy: Cluster
+      http:
+        enabled: true
+        port: 80
