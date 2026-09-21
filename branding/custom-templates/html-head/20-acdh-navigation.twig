@@ -1,0 +1,19 @@
+{# Skosmos 3.3 links to a missing #maincontent; keep its existing main wrapper. #}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const skip = document.getElementById('skiptocontent');
+  const main = document.getElementById('main-container-row');
+  if (!skip || !main) return;
+
+  // Use the current page URL: a fragment alone resolves against Skosmos' <base>.
+  const target = new URL(window.location.href);
+  target.hash = main.id;
+  skip.href = target.href;
+  skip.classList.replace('visually-hidden', 'visually-hidden-focusable');
+  skip.addEventListener('click', (event) => {
+    event.preventDefault();
+    main.focus();
+    main.scrollIntoView({ block: 'start' });
+  });
+});
+</script>

@@ -1,5 +1,8 @@
+{# Inner pages already have the ACDH identity in #skosmos-logo-top. #}
+{% if pageType == 'landing' %}
 <div class="col-12">
   <a class="acdh-header-logo" href="{{ BaseHref }}" aria-label="ACDH Vocabs home">
     <img src="{{ BaseHref }}resource/pics/acdh/vocabs-logo.svg" alt="ACDH Vocabs">
   </a>
 </div>
+{% endif %}

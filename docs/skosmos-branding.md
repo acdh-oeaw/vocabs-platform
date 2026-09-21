@@ -17,7 +17,8 @@ migration and reference source only; it is not a runtime dependency.
 
 The default configuration enables the stylesheet with `skosmos:customCss`. No
 plugin is currently enabled: the migrated behavior is static content and
-styling, so a JavaScript plugin would add risk without a functional benefit.
+styling, with a small navigation repair script in the `html-head` slot. No
+plugin registration or full-page override is needed.
 
 ## Migration matrix
 
@@ -42,9 +43,9 @@ styling, so a JavaScript plugin would add risk without a functional benefit.
 
 Skosmos v3.3 includes `.twig` files under `custom-templates/<slot>/` in
 alphabetical order. The available slots used here are `html-head`,
-`headerbar-top`, `landing-end`, `about` and `footer`; v3.3 also provides
+`headerbar-top`, `landing-end`, `about`, `footer` and `topbar`; v3.3 also provides
 `headerbar-bottom`, `landing-start`, `landing-top`, `landing-bottom`,
-`main-content-top`, `main-content-bottom` and `topbar`.
+`main-content-top` and `main-content-bottom`.
 
 `skosmos:customCss` accepts a stylesheet path relative to the Skosmos webroot.
 `skosmos:globalPlugins` accepts plugin names, with each plugin described by a
@@ -77,8 +78,10 @@ behavior, and the absence of legacy jQuery hierarchy/sidebar scripts.
 
 The current development profile remains on upstream Skosmos `v3.3`. The shared
 ACDH revision remains `r1` for Fuseki and Jena tools, while the profile's
-Skosmos-specific revision is `r2` for the theme image:
-`ghcr.io/acdh-oeaw/vocabs-skosmos:3.3-r2`. This avoids an unrelated rebuild/tag
+Skosmos-specific deployed revision is `r3`:
+`ghcr.io/acdh-oeaw/vocabs-skosmos:3.3-r3`. The theme cleanup requires a new
+immutable `3.3-r4` image and a subsequent chart release `0.2.0-dev.8`; neither
+version is changed or published by this cleanup. This avoids an unrelated rebuild/tag
 bump for the data/runtime images.
 
 The following legacy files are intentionally not runtime dependencies: all
@@ -87,3 +90,85 @@ other than the content inspected for migration, `resource/js/*`, the remaining
 relationship icons and screenshots under `resource/pics/`, the unused font
 formats, the `.po`/`.mo` translation catalogues, and both Matomo plugin
 directories. The legacy repository remains the audit/reference source.
+
+## Landing cleanup and navigation audit (Skosmos 3.3)
+
+Inspected upstream [base template](https://github.com/NatLibFi/Skosmos/blob/v3.3/src/view/base-template.twig),
+[landing template](https://github.com/NatLibFi/Skosmos/blob/v3.3/src/view/landing.twig),
+[styles](https://github.com/NatLibFi/Skosmos/blob/v3.3/resource/css/skosmos.css)
+and navigation scripts. Bootstrap `py-4` plus the custom logo's bottom margin
+made the header unnecessarily tall. The 7/5-column split, background on the
+entire stretched right column, minimum height and grey vocabulary list made
+empty deployments look unbalanced. The dark logo also lacked contrast against
+the dark footer.
+
+CSS now gives the landing page a bounded, equal-column desktop layout, stacked
+mobile content, a compact header and a content-sized intro background. The
+existing translated empty-state heading remains visible with neutral styling;
+no vocabulary data or translations are substituted. The footer logo has a white
+backing and its headings, underlines and focus rings contrast with the dark
+background. The upstream visually-hidden landing h1 remains accessible: only
+its decorative Skosmos background and dimensions are removed. The inner-page
+background logo uses the ACDH asset too, preserving its upstream accessible name.
+
+The base template's skip link points at missing `#maincontent` and is always
+`visually-hidden`. Its actual main wrapper is `#main-container-row`, already
+inside `<main>` and focusable with `tabindex="-1"`. The small `html-head` slot
+script points the existing link at this wrapper on the *current page* (important
+because of `<base>`), switches to Bootstrap's focus-visible skip-link class,
+and focuses/scrolls the wrapper only on activation. It never steals initial
+focus. No upstream source file, page template, translation or outline rule is
+replaced. Without JavaScript, the upstream skip-link defect remains; Skosmos
+itself declares JavaScript required. Reassess this repair on upstream upgrades.
+
+The blue container outline is consistent with upstream `:focus-visible`, not
+a decorative border. Static source inspection cannot establish what focused
+the wrapper in a particular browser session. After activating Skip to main,
+a wrapper focus outline is intentional and must remain. In dev, inspect
+`document.activeElement` when reproducing an unexpected outline before assuming
+it is a layout problem.
+
+Tests cover packaged extension paths/assets, absence of full-page forks,
+retained heading container, no outline suppression, current-page skip targets,
+no initial focus, activation and missing-element handling. Theme tests are now
+included in `make test` and `make validate`. These checks do not substitute for
+browser layout or screen-reader acceptance.
+
+Before promoting r4, visually check 320px mobile, tablet and wide desktop,
+200% zoom, empty and populated vocabulary lists, About/concept/search pages,
+logo proportions, footer wrapping and no horizontal overflow. Tab from the
+address bar: Skip to main must appear, Enter must focus main without navigating
+to a different page, and subsequent Tab must reach content links. Verify the
+hidden h1 with a screen reader and visible focus on navigation/footer links.
+
+### Header variants and logo regression audit
+
+A full search of the Skosmos v3.3 source for `skosmos-logo`, `skosmos-logo-top`,
+`skosmos-RGB.svg` and `skosmos-NEGA-RGB.svg` found only the two containers in
+`src/view/base-template.twig` and their rules in `resource/css/skosmos.css`.
+All major page templates extend that base; none introduces a third logo.
+
+| Page/template | Upstream header identity | ACDH identity |
+|---|---|---|
+| `/en/` (`landing.twig`) | `#skosmos-logo`, RGB background, hidden h1 | `headerbar-top` image; upstream background removed and dimensions reset |
+| `/en/about` (`about.twig`) | `#skosmos-logo-top`, NEGA background, hidden service-name h2 | ACDH background on the existing home link |
+| `/en/feedback` (`feedback.twig`) | Same topbar link; no headerbar | Same ACDH background |
+| Vocabulary home (`vocab-home.twig`) | Topbar link plus vocabulary title/search headerbar | Topbar ACDH background only; no extra headerbar logo |
+| Concept (`concept.twig`) | Same vocabulary header variant | Topbar ACDH background only |
+| Vocabulary search (`vocab-search.twig`) | Same vocabulary header variant | Topbar ACDH background only |
+| Global search (`global-search.twig`) | Search toggle, no logo and no headerbar | Small `topbar` slot image, guarded by the base template's no-logo condition |
+
+The headerbar fragment now renders only on landing. The extra topbar fragment
+renders only when neither existing logo variant is present. Both preserve the
+existing vocabulary title/search controls. The topbar background replacement
+keeps its hidden service-name heading and home link, but replaces the upstream
+168×60 fixed dimensions with responsive width and the ACDH asset's aspect ratio.
+There is no empty fixed-height logo block and no hidden heading container.
+The footer identity is intentional and separate from header duplication.
+
+This matrix is based on upstream template branches and CSS inspection, not a
+live deployment render. In addition to landing, visual acceptance must explicitly
+visit **`/en/about` and `/en/feedback`**, then a configured vocabulary, concept,
+vocabulary search and global search. Each header should show exactly one ACDH
+identity and no Skosmos logo at mobile/desktop sizes. Check home-link keyboard
+focus, accessible service names, navigation wrapping and title/search usability.
