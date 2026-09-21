@@ -4,7 +4,7 @@ CHART := ./chart/vocabs
 .PHONY: deps lint template validate test rdf configmap images
 
 deps:
-	helm dependency build $(CHART)
+	@echo "No Helm dependencies to build."
 lint:
 	helm lint $(CHART)
 template:

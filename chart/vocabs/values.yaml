@@ -13,13 +13,13 @@ fullnameOverride: ""
 commonLabels: {}
 commonAnnotations: {}
 imagePullSecrets: []
-# Varnish upstream consumes global settings. Do not set reserved selector labels.
+# Shared settings consumed by parent-chart templates.
 global:
   publicUrl: "" # Absolute http(s) root URL with trailing slash; required for the gateway.
   imagePullSecrets: []
   labels: {}
   annotations: {}
-  # Explicit bridge for the dependency's tpl context. Must match parent values; checked at render time.
+  # Fuseki endpoint used by the generated Vinyl VCL; checked at render time.
   vocabsFusekiHost: "" # Empty resolves <release>-vocabs-fuseki; set if overriding parent name.
   vocabsFusekiPort: "3030"
 serviceAccount:
@@ -57,37 +57,53 @@ skosmos:
   readinessProbe: {path: /en/, initialDelaySeconds: 5, periodSeconds: 10, timeoutSeconds: 5, failureThreshold: 3}
   livenessProbe: {path: /swagger.json, initialDelaySeconds: 30, periodSeconds: 20, timeoutSeconds: 5, failureThreshold: 6}
 
-# Passed to official varnish-cache 0.1.3; inspect its values before adding options.
-varnish:
-  nameOverride: varnish
-  serviceAccount:
-    create: true
-  server:
-    kind: Deployment
-    replicas: 1
-    image: {repository: docker.io/varnish, tag: "9.0.0", pullPolicy: IfNotPresent}
-    service:
-      type: ClusterIP
-      externalTrafficPolicy: ""
-      internalTrafficPolicy: Cluster
-      http: {enabled: true, port: 80}
-    ingress: {enabled: false}
-    hostNetwork: false
-    varnishncsa: {enabled: false}
-    networkPolicy: {enabled: false} # Parent chart owns the restrictive policy.
-    affinity: "" # Allow a single-node development cluster.
-    strategy: {type: Recreate} # Avoid retaining the previous process cache during activation.
-    securityContext:
-      allowPrivilegeEscalation: false
-      capabilities: {drop: [ALL]}
-      seccompProfile: {type: RuntimeDefault}
-    resources:
-      requests: {cpu: 100m, memory: 256Mi}
-      limits: {cpu: "1", memory: 512Mi}
-    # Keep this annotation equal to <data.activeClaim>/<data.revision>; enforced by Helm.
-    podAnnotations:
-      vocabs.acdh.oeaw.ac.at/data-revision: "vocabs-data-r001/r001"
-    vclConfig: '{{ include "vocabs.vcl" . }}' # Override with a complete custom VCL.
+# Vinyl Cache is managed directly by the parent chart.
+vinyl:
+  replicas: 1
+
+  image:
+    repository: ghcr.io/acdh-oeaw/vocabs-vinyl
+    tag: "9.1.0"
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 6081
+    internalTrafficPolicy: Cluster
+
+  strategy:
+    type: Recreate
+
+  cache:
+    size: 256M
+
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    seccompProfile:
+      type: RuntimeDefault
+
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: [ALL]
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
+
+  # Keep equal to <data.activeClaim>/<data.revision>.
+  podAnnotations:
+    vocabs.acdh.oeaw.ac.at/data-revision: "vocabs-data-r001/r001"
+
+  vclConfig: '{{ include "vocabs.vcl" . }}'
 
 fuseki:
   replicas: 1 # Any other value is rejected, even in unsupported mode.
@@ -161,7 +177,7 @@ imports:
     type: pvc
     pvc:
       existingClaim: ""
-      file: /data/example.rdf
+      file: /data/example.ttl
   validateRdf: true
   buildTextIndex: true
   java: {xms: 1g, xmx: 4g}
@@ -205,7 +221,7 @@ ingress:
 networkPolicy:
   enabled: true # Requires a CNI which enforces NetworkPolicy.
   fusekiAdditionalPeers: [] # Kubernetes NetworkPolicyPeer objects; namespace selector optional.
-  varnishAdditionalPeers: []
+  vinylAdditionalPeers: []
   # Explicit NetworkPolicyPeer objects for your ingress controller. Empty denies ingress.
   # Example selectors live in docs/gateway.md; no cluster labels are assumed.
   gatewayIngressPeers: []

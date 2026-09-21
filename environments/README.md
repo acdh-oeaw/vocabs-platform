@@ -4,13 +4,13 @@
 CHANGE-ME storage/ingress/TLS values, global.publicUrl, and source paths before
 installation. No credentials belong here. Supply existing Kubernetes Secret names
 for image pulls (`imagePullSecrets`, and upstream `global.imagePullSecrets`) and
-TLS. Varnish management credentials, if needed, use the upstream
-`varnish.server.secretFrom: {name: ..., key: ...}`; never set a literal secret.
+TLS. Vinyl Cache is managed directly by the parent chart and does not expose
+management credentials through environment values.
 Fuseki's supplied query-only assembler needs no public administration credentials.
 
 Use one environment file and one Helm release per namespace. Choose distinct
 PVC names if running more than one release in a namespace. Keep the active claim,
-revision and Varnish revision annotation synchronized; activation examples show
+revision and Vinyl Cache revision annotation synchronized; activation examples show
 all three. Never persist an import-enabled overlay as normal release values.
 Commit safe configuration metadata; keep private local values in ignored
 `environments/local*.yaml` or your deployment secret/config system.

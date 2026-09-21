@@ -41,10 +41,10 @@ for each data revision.
    checklist in `tests/integration/README.md`.
 6. Quiesce public traffic at your ingress/maintenance layer. Confirm the importer
    and any candidate validator have terminated, then change `data.activeClaim`,
-   `data.revision` and `varnish.server.podAnnotations` together; the latter's
+   `data.revision` and `vinyl.podAnnotations` together; the latter's
    `vocabs.acdh.oeaw.ac.at/data-revision` must be `<claim>/<revision>`. See
    `chart/vocabs/examples/activate-r002.yaml`. Keep imports disabled.
-7. Upgrade and wait for Fuseki's StatefulSet and Varnish's Deployment rollouts.
+7. Upgrade and wait for Fuseki's StatefulSet and Vinyl Cache's Deployment rollouts.
    Old Fuseki exits normally before its successor mounts the new claim. Never
    force-delete a stuck pod or remove lock files: investigate first. Test queries
    and Skosmos search, then resume traffic.
@@ -54,9 +54,9 @@ for each data revision.
    at its database files.
 
 Cache invalidation is a process restart with a revision annotation. **Helm does
-not order the Fuseki and Varnish rollouts atomically**: a new Varnish could query
+not order the Fuseki and Vinyl Cache rollouts atomically**: a new Vinyl Cache pod could query
 old Fuseki before activation finishes. Therefore quiesce traffic for cutover and
-restart Varnish once more after Fuseki is ready if any request could have entered
+restart Vinyl Cache once more after Fuseki is ready if any request could have entered
 during transition. The new JVM and cache require a short maintenance window;
 this design does not promise zero downtime. Maximum default cache TTL is 120s,
 with no stale grace; cache invalidation is still required for correct activation.

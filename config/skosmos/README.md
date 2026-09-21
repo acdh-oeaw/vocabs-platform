@@ -1,14 +1,16 @@
 # Modular Skosmos configuration
 
 Copy `base.ttl.example` to your environment's base.ttl, add categories.ttl and
-`vocabularies/*.ttl`. Use stable absolute configuration identifiers, consistent
-prefix declarations and vocabulary URIs; concatenation of contradictory @base
-or prefix declarations can silently change meaning even when Turtle is valid.
-The examples use `urn:acdh:vocabs:config:` to avoid relative-base ambiguity.
+`vocabularies/*.ttl`. Use consistent prefix declarations and vocabulary URIs;
+concatenation of contradictory @base or prefix declarations can silently change
+meaning even when Turtle is valid. Vocabulary resources that define Skosmos
+route IDs use local fragments such as `<#example>`. Shared configuration and
+category resources may use stable absolute identifiers such as
+`urn:acdh:vocabs:config:`.
 
 Set `global.publicUrl` in the environment values. The ConfigMap workflow adds a
 missing baseHref from it and rejects any conflicting value; do not maintain an
-independent URL. Edit the Skosmos → Varnish SPARQL endpoint, language
+independent URL. Edit the Skosmos → Vinyl Cache SPARQL endpoint, language
 settings, graph names and enabled plugins for each namespace. A default-graph
 vocabulary example is supplied; use `skosmos:sparqlGraph` only when your dataset
 was imported into that named graph. Keep this configuration out of a large Helm

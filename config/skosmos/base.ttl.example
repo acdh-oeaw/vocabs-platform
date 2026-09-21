@@ -5,7 +5,7 @@
 cfg:config a skosmos:Configuration ;
   skosmos:serviceName "ACDH Vocabs" ;
   # Replace the service name if the release is not 'vocabs'.
-  skosmos:sparqlEndpoint <http://vocabs-varnish:80/skosmos/sparql> ;
+  skosmos:sparqlEndpoint <http://vocabs-vocabs-vinyl:80/skosmos/sparql> ;
   skosmos:sparqlDialect "JenaText" ;
   # configmap.sh adds baseHref from the environment global.publicUrl.
   skosmos:languages ( [ rdfs:label "en" ; rdf:value "en_GB.utf8" ] [ rdfs:label "de" ; rdf:value "de_DE.utf8" ] ) ;

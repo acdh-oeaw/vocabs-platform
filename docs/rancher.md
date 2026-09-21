@@ -22,9 +22,8 @@ safety tests, Turtle validation, and strict Kubernetes schema validation.
 Only after success does the publishing job receive `contents: write`.
 Both jobs use the same checksum-pinned Helm 3.17.3/kubeconform 0.6.7 installer.
 
-The publishing job rebuilds dependencies from `Chart.lock`, packages
-`chart/vocabs`, checks the bundled Varnish chart, and renders the package with the
-example values. The official
+The publishing job packages `chart/vocabs`, validates the parent-managed Vinyl
+Cache resources, and renders the package with the example values. The official
 [chart-releaser-action v1.7.0](https://github.com/helm/chart-releaser-action/tree/cae68fefc6b5f367a0275617c9f83181ba54714f)
 is pinned to commit `cae68fefc6b5f367a0275617c9f83181ba54714f` and uses
 chart-releaser CLI v1.7.0. `charts_dir: chart` preserves the chart location.
@@ -33,8 +32,8 @@ without depending on changes since an earlier Git tag.
 
 Packages go to GitHub Release assets; `gh-pages/index.yaml` references those
 assets. Generated packages and the index are never committed to `main`.
-Varnish 0.1.3 is bundled, so installers do not need OCI credentials or a separate
-`helm dependency build`. Concurrent releases are serialized.
+Vinyl Cache is managed directly by the chart, so installers do not need a
+separate Helm dependency build. Concurrent releases are serialized.
 
 - `Chart.yaml` **version changes → new Helm/Rancher release**, named
   `vocabs-<version>`. Bump this for every chart change intended for distribution.
@@ -143,7 +142,7 @@ imports:
     type: pvc
     pvc:
       existingClaim: vocabs-import
-      file: /data/example.rdf
+      file: /data/example.ttl
 ```
 
 Provision the separate shared RDF source PVC `vocabs-import` in namespace

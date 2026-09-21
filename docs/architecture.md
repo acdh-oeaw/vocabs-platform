@@ -1,11 +1,11 @@
 # Architecture
 
 The public path is Ingress (TLS) → Gateway Service → Anubis :8080 → localhost
-nginx-unprivileged :8081 → Skosmos → Varnish → Fuseki. Ingress is the external
+nginx-unprivileged :8081 → Skosmos → Vinyl Cache → Fuseki. Ingress is the external
 entry point; Anubis filters requests; Nginx handles routing, concept/DARIAH
-redirects, CORS and proxy headers; Skosmos serves vocabularies; Varnish caches
+redirects, CORS and proxy headers; Skosmos serves vocabularies; Vinyl Cache caches
 SPARQL; Fuseki is the internal RDF database. Only Anubis has a public gateway
-Service port. There are no direct Skosmos or Varnish public ingresses; the
+Service port. There are no direct Skosmos or Vinyl Cache public ingresses; the
 optional Fuseki administrative Ingress is separately whitelisted. See
 [the administrative endpoint runbook](admin-endpoints.md).
 
@@ -36,11 +36,11 @@ arbitrary UIDs and dropping all capabilities are not imposed on that image.
 Fuseki and importer use UID/GID 1000, filesystem group 1000 and restricted Linux
 capabilities. Swagger follows its upstream Nginx startup requirements. No RBAC
 permissions are granted; parent workloads disable service account token mounts.
-The upstream Varnish chart creates its own service account and uses its default
-token mounting behavior; assess this upstream limitation before production.
+Vinyl Cache is managed directly by the parent chart. Its pod disables service
+account token mounting and runs with the chart-defined restricted security context.
 
 NetworkPolicies permit configured ingress-controller peers → Gateway, same-release
-Gateway → Skosmos, Skosmos → Varnish and Varnish → Fuseki. Empty gateway peers
+Gateway → Skosmos, Skosmos → Vinyl Cache and Vinyl Cache → Fuseki. Empty gateway peers
 deny incoming gateway traffic until operators provide actual controller selectors.
 Offline imports use PVCs and receive no network exception. Additional peers are
 explicit Kubernetes pod/namespace selectors. NetworkPolicies are additive: other
@@ -49,20 +49,20 @@ A cluster without an enforcing CNI can install the chart but does not receive
 network isolation. There is no assumed ingress-controller namespace.
 
 Fuseki exposes a read-only `skosmos` dataset query service. There are no update,
-upload or graph-write endpoints in the supplied assembler. Varnish additionally
+upload or graph-write endpoints in the supplied assembler. Vinyl Cache additionally
 allows only query paths and GET/HEAD/POST; POST queries bypass the cache. A custom
-VCL supplied through `varnish.server.vclConfig` must preserve the intended read-only
+VCL supplied through `vinyl.vclConfig` must preserve the intended read-only
 boundary. It is Helm-templated, so values must be trusted deployment configuration.
 
-The official dependency has its own values context. `global.vocabsFusekiHost`
-(empty means `<release>-vocabs-fuseki`) and `global.vocabsFusekiPort` are checked
-against the parent service. Varnish's data-revision pod annotation must equal
+`global.vocabsFusekiHost` (empty means `<release>-vocabs-fuseki`) and
+`global.vocabsFusekiPort` are checked against the parent Fuseki service and used
+by the generated Vinyl VCL. Vinyl Cache's data-revision pod annotation must equal
 `<activeClaim>/<data.revision>`, enforced during rendering. The profile pins the
-Varnish and Swagger image defaults; new profiles must update those dependency
-values too, and mismatches fail unless explicitly in unsupported testing mode.
+Vinyl Cache and Swagger image defaults; new profiles must update those values too,
+and mismatches fail unless explicitly in unsupported testing mode.
 
 Fuseki's headless service provides StatefulSet identity; its normal ClusterIP
-service is the Varnish backend. The database volume is a regular retained PVC,
+service is the Vinyl Cache backend. The database volume is a regular retained PVC,
 not a volumeClaimTemplate, so changing `activeClaim` changes the pod template.
 A StatefulSet maintains ordering for its one pod, but cannot protect against
 operators mounting that claim in a second unrelated workload.

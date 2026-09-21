@@ -1,13 +1,8 @@
 apiVersion: v2
 name: vocabs
-description: ACDH Vocabs platform — Anubis/Nginx gateway, Skosmos, Varnish and single-writer Fuseki
+description: ACDH Vocabs platform — Anubis/Nginx gateway, Skosmos, Vinyl Cache and single-writer Fuseki
 type: application
-version: 0.2.0-dev.12
+version: 0.2.0-dev.13
 appVersion: "2026.09.0-dev"
 kubeVersion: ">=1.28.0-0"
 home: https://github.com/acdh-oeaw/vocabs-platform
-dependencies:
-  - name: varnish-cache
-    alias: varnish
-    version: "0.1.3"
-    repository: oci://registry-1.docker.io/varnish

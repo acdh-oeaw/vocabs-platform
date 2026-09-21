@@ -2,7 +2,7 @@
 @prefix void: <http://rdfs.org/ns/void#> .
 @prefix dc: <http://purl.org/dc/terms/> .
 @prefix cfg: <urn:acdh:vocabs:config:> .
-cfg:example a skosmos:Vocabulary, void:Dataset ;
+<#example> a skosmos:Vocabulary, void:Dataset ;
   dc:title "Example vocabulary"@en ;
   dc:subject cfg:general ;
   skosmos:shortName "Example" ;

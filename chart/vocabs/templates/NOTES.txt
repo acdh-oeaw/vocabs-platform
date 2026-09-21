@@ -19,7 +19,7 @@ Read docs/imports.md before data activation; cache rollouts are not an atomic cu
 
 {{ if .Values.gateway.enabled }}
 Public URL: {{ .Values.global.publicUrl }}
-HTTP path: Ingress -> Anubis :8080 -> localhost Nginx :8081 -> Skosmos -> Varnish -> Fuseki.
+HTTP path: Ingress -> Anubis :8080 -> localhost Nginx :8081 -> Skosmos -> Vinyl Cache -> Fuseki.
 Gateway uses one replica and Recreate updates for local Anubis state.
 {{ if and .Values.networkPolicy.enabled (not .Values.networkPolicy.gatewayIngressPeers) }}
 Gateway ingress is DENIED until networkPolicy.gatewayIngressPeers matches your ingress controller.

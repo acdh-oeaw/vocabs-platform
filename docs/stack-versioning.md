@@ -39,7 +39,7 @@ internal services or the single-replica rule. Changing engine or Jena requires a
 fresh RDF import, never in-place format conversion. Custom assemblers and image
 contents remain operator responsibilities; Helm cannot inspect their semantics.
 
-Varnish/Swagger values are verified against the selected profile. New supported
-profiles must update these dependency image defaults in the same chart release.
+Vinyl Cache/Swagger values are verified against the selected profile. New supported
+profiles must update these image defaults in the same chart release.
 Production promotion additionally requires immutable registry tags or digests,
 image scanning, SBOM/provenance publication and a tested disaster-recovery plan.

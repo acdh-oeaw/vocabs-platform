@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "vocabs.fullname" . }}-vinyl
+  labels:
+    {{- include "vocabs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: vinyl
+spec:
+  type: {{ .Values.vinyl.service.type }}
+  internalTrafficPolicy: {{ .Values.vinyl.service.internalTrafficPolicy }}
+  selector:
+    {{- include "vocabs.selector" . | nindent 4 }}
+    app.kubernetes.io/component: vinyl
+  ports:
+    - name: http
+      protocol: TCP
+      port: {{ .Values.vinyl.service.port }}
+      targetPort: http

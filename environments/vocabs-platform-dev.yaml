@@ -94,12 +94,9 @@ swagger:
     tls:
       enabled: true
       secretName: vocabsapi-vp-dev-tls
-varnish:
-  server:
-    service:
-      type: ClusterIP
-      externalTrafficPolicy: ""
-      internalTrafficPolicy: Cluster
-      http:
-        enabled: true
-        port: 80
+vinyl:
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 6081
+    internalTrafficPolicy: Cluster

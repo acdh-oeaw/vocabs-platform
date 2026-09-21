@@ -23,7 +23,7 @@ HTTPS because its administrative interface is authenticated. The intended
 access control depends on Apache Shiro plus the actual internal DNS,
 ingress-controller and load-balancer topology. An internal-looking hostname is
 not proof of private network reachability. Helm does not create DNS records or
-externally exposed Services, and Fuseki, Swagger and Varnish remain `ClusterIP`.
+externally exposed Services, and Fuseki, Swagger and Vinyl Cache remain `ClusterIP`.
 
 ## Fuseki authentication
 

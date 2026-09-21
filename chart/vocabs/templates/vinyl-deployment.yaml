@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "vocabs.fullname" . }}-vinyl
+  labels:
+    {{- include "vocabs.labels" . | nindent 4 }}
+    app.kubernetes.io/component: vinyl
+spec:
+  replicas: {{ .Values.vinyl.replicas }}
+  strategy:
+    type: {{ .Values.vinyl.strategy.type }}
+  selector:
+    matchLabels:
+      {{- include "vocabs.selector" . | nindent 6 }}
+      app.kubernetes.io/component: vinyl
+  template:
+    metadata:
+      labels:
+        {{- include "vocabs.selector" . | nindent 8 }}
+        app.kubernetes.io/component: vinyl
+      annotations:
+        checksum/vcl: {{ tpl .Values.vinyl.vclConfig . | sha256sum }}
+        {{- with .Values.vinyl.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      automountServiceAccountToken: false
+
+      securityContext:
+        {{- toYaml .Values.vinyl.podSecurityContext | nindent 8 }}
+
+      containers:
+        - name: vinyl
+          image: "{{ .Values.vinyl.image.repository }}:{{ .Values.vinyl.image.tag }}"
+          imagePullPolicy: {{ .Values.vinyl.image.pullPolicy }}
+
+          command:
+            - /usr/local/sbin/vinyld
+
+          args:
+            - -F
+            - -j
+            - none
+            - -a
+            - :{{ .Values.vinyl.service.targetPort }}
+            - -f
+            - /etc/vinyl-cache/default.vcl
+            - -n
+            - /var/lib/vinyl-cache/vinyld
+            - -s
+            - malloc,{{ .Values.vinyl.cache.size }}
+
+          securityContext:
+            {{- toYaml .Values.vinyl.securityContext | nindent 12 }}
+
+          ports:
+            - name: http
+              containerPort: {{ .Values.vinyl.service.targetPort }}
+              protocol: TCP
+
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 6
+
+          resources:
+            {{- toYaml .Values.vinyl.resources | nindent 12 }}
+
+          volumeMounts:
+            - name: config
+              mountPath: /etc/vinyl-cache
+              readOnly: true
+            - name: state
+              mountPath: /var/lib/vinyl-cache
+
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "vocabs.fullname" . }}-vinyl
+        - name: state
+          emptyDir: {}

@@ -7,7 +7,7 @@
   {{- end }}
   skosmos:serviceName "ACDH Vocabs (development)" ;
   skosmos:customCss "resource/css/acdh/acdh-vocabs.css" ;
-  skosmos:sparqlEndpoint <http://{{ include "varnish-cache.fullname" .Subcharts.varnish }}:{{ .Values.varnish.server.service.http.port }}/skosmos/sparql> ;
+  skosmos:sparqlEndpoint <http://{{ include "vocabs.fullname" . }}-vinyl:{{ .Values.vinyl.service.port }}/skosmos/sparql> ;
   skosmos:sparqlDialect "JenaText" ;
   skosmos:languages ( [ rdfs:label "en" ; rdf:value "en_GB.utf8" ] [ rdfs:label "de" ; rdf:value "de_DE.utf8" ] ) ;
   skosmos:templateCache "/tmp/skosmos-template-cache" .

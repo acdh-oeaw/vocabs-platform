@@ -80,8 +80,8 @@ class Rendering(unittest.TestCase):
         for d in docs:
             if d['kind'] == 'Service': self.assertEqual(d['spec']['type'], 'ClusterIP')
             if d['kind'] == 'PersistentVolumeClaim': self.assertEqual(d['metadata']['annotations']['helm.sh/resource-policy'], 'keep')
-        self.assertIn('http://vocabs-varnish:80/skosmos/sparql', find(docs, 'ConfigMap', 'skosmos-config')['data']['config.ttl'])
-        self.assertIn('.host = "vocabs-vocabs-fuseki"', find(docs, 'ConfigMap', 'vcl')['data']['default.vcl'])
+        self.assertIn('http://vocabs-vocabs-vinyl:80/skosmos/sparql', find(docs, 'ConfigMap', 'skosmos-config')['data']['config.ttl'])
+        self.assertIn('.host = "vocabs-vocabs-fuseki"', find(docs, 'ConfigMap', 'vinyl')['data']['default.vcl'])
         # Every policy peer must select a real workload in this release.
         pods = [d['spec']['template']['metadata']['labels'] for d in docs if d['kind'] in ['Deployment', 'StatefulSet']]
         for d in docs:
@@ -89,13 +89,13 @@ class Rendering(unittest.TestCase):
             selectors = [d['spec']['podSelector']['matchLabels'], d['spec']['ingress'][0]['from'][0]['podSelector']['matchLabels']]
             for selector in selectors:
                 self.assertTrue(any(all(p.get(k) == v for k,v in selector.items()) for p in pods), selector)
-    def test_varnish_service_internal_only(self):
+    def test_vinyl_service_internal_only(self):
         docs = render()
-        varnish = find(docs, 'Service', 'varnish')
-        self.assertEqual(varnish['spec']['type'], 'ClusterIP')
-        self.assertNotIn('externalTrafficPolicy', varnish['spec'])
-        self.assertEqual(varnish['spec'].get('internalTrafficPolicy'), 'Cluster')
-        self.assertEqual(varnish['spec']['ports'][0]['port'], 80)
+        vinyl = find(docs, 'Service', 'vinyl')
+        self.assertEqual(vinyl['spec']['type'], 'ClusterIP')
+        self.assertNotIn('externalTrafficPolicy', vinyl['spec'])
+        self.assertEqual(vinyl['spec'].get('internalTrafficPolicy'), 'Cluster')
+        self.assertEqual(vinyl['spec']['ports'][0]['port'], 80)
 
     def test_skosmos_profile_uses_real_upstream_tag(self):
         profile = yaml.safe_load(Path('chart/vocabs/compatibility.yaml').read_text())['profiles']['2026.09.0-dev']
@@ -241,8 +241,7 @@ class Rendering(unittest.TestCase):
           ({'stack':{'version':'unknown'}},'Unknown stack profile'),
           ({'fuseki':{'replicas':2}},'replicas'),
           ({'fuseki':{'service':{'type':'LoadBalancer'}}},'ClusterIP'),
-          ({'varnish':{'server':{'service':{'type':'NodePort'}}}},'Varnish must remain internal'),
-          ({'varnish':{'server':{'ingress':{'enabled':True}}}},'Varnish must remain internal'),
+          ({'vinyl':{'service':{'type':'NodePort'}}},'Vinyl Service must remain internal'),
           ({'compatibility':{'overrides':{'jenaVersion':'5.5.0'}}},'allowUnsupported'),
           ({'fuseki':{'image':{'tag':'latest'}}},'tag'),
           ({'data':{'activeClaim':'other'}},'data-revision'),
@@ -263,11 +262,11 @@ class Rendering(unittest.TestCase):
             self.assertIn(':5.5.0-r1',find(docs,kind)['spec']['template']['spec']['containers'][0]['image'])
     def test_activation_and_namespaces(self):
         old=render(); v=yaml.safe_load(Path('chart/vocabs/examples/activate-r002.yaml').read_text()); new=render(v)
-        def revision(docs):return find(docs,'Deployment','varnish')['spec']['template']['metadata']['annotations']['vocabs.acdh.oeaw.ac.at/data-revision']
+        def revision(docs):return find(docs,'Deployment','vinyl')['spec']['template']['metadata']['annotations']['vocabs.acdh.oeaw.ac.at/data-revision']
         self.assertNotEqual(revision(old),revision(new))
         for release,namespace in [('vocab-a','namespace-a'),('vocab-b','namespace-b')]:
             docs=render(release=release,namespace=namespace)
-            self.assertIn(f'.host = "{release}-vocabs-fuseki"',find(docs,'ConfigMap','vcl')['data']['default.vcl'])
+            self.assertIn(f'.host = "{release}-vocabs-fuseki"',find(docs,'ConfigMap','vinyl')['data']['default.vcl'])
     def test_config_checksum(self):
         docs=render({'skosmos':{'config':{'inline':'# changed'}}})
         a=find(render(),'Deployment','skosmos')['spec']['template']['metadata']['annotations']['checksum/config']

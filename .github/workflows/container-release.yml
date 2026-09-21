@@ -12,6 +12,7 @@ on:
           - skosmos
           - fuseki
           - jena-tools
+          - vinyl
 permissions:
   contents: read
   packages: write
@@ -74,9 +75,19 @@ jobs:
                   f"FUSEKI_SHA512={profile['jena']['fusekiSha512']}",
                 ]),
               },
+              {
+                'component': 'vinyl',
+                'file': 'images/vinyl/Dockerfile',
+                'tag': f"ghcr.io/acdh-oeaw/vocabs-vinyl:{profile['vinyl']['version']}",
+                'build_args': '\n'.join([
+                  'DEBIAN_BASE_IMAGE=docker.io/library/debian:bookworm-slim@sha256:f3034a6ec3c1205360777c4aae76234998866ad18806ae62b63a3f84ccad782b',
+                  f"VINYL_VERSION={profile['vinyl']['version']}",
+                  f"VINYL_SHA256={profile['vinyl']['sha256']}",
+                ]),
+              },
           ]
           requested = os.environ['RELEASE_COMPONENT']
-          if requested not in {'all', 'skosmos', 'fuseki', 'jena-tools'}:
+          if requested not in {'all', 'skosmos', 'fuseki', 'jena-tools', 'vinyl'}:
               raise SystemExit(f'Unsupported container component: {requested}')
           if requested != 'all':
               matrix = [item for item in matrix if item['component'] == requested]

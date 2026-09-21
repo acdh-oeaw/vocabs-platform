@@ -1,11 +1,11 @@
 # ACDH Vocabs
 
-Development pilot: Anubis/Nginx gateway, Skosmos, Varnish and single-writer Fuseki.
+Development pilot: Anubis/Nginx gateway, Skosmos, Vinyl Cache and single-writer Fuseki.
 This chart is not yet production certified.
 
 Configure installation through the values YAML editor. `values.yaml` and
 `values.schema.json` are authoritative; no Rancher-specific configuration is
-required. Varnish is bundled in the package.
+required. Vinyl Cache is managed directly by this chart.
 
 Before enabling public ingress, prepare the public URL, ingress class, TLS
 Secret, persistent Anubis signing Secret, Skosmos ConfigMap, and storage claims.

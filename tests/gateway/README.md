@@ -32,7 +32,7 @@ Nginx/Anubis deployment:
 - CORS OPTIONS requests and real cross-origin browser requests with the intended origin.
 - Public HTTPS Host/baseHref and source IP attribution through the actual ingress controller.
 - Percent escapes, Unicode, trailing slashes and query strings against old redirect results.
-- NetworkPolicy enforcement: direct Skosmos, internal Nginx, Varnish and Fuseki blocked.
+- NetworkPolicy enforcement: direct Skosmos, internal Nginx, Vinyl Cache and Fuseki blocked.
 - Signing-key continuity, bbolt persistence, clean Recreate rollouts and traffic rollback.
 
 Record actual results; passing the mock smoke test is not production acceptance.

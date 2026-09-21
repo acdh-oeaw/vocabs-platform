@@ -15,7 +15,8 @@ spec:
     - from:
         - podSelector:
             matchLabels:
-              {{- include "varnish-cache.selectorLabels" .Subcharts.varnish | nindent 14 }}
+              {{- include "vocabs.selector" . | nindent 14 }}
+              app.kubernetes.io/component: vinyl
         {{- with .Values.networkPolicy.fusekiAdditionalPeers }}
         {{- toYaml . | nindent 8 }}
         {{- end }}

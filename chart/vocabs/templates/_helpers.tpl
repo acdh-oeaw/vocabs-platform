@@ -59,7 +59,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- if not (regexMatch "^[0-9]+[.][0-9]+.*" $tag) }}{{ fail "Image tags must start with an explicit version" }}{{ end -}}
 {{- printf "%s:%s" .image.repository $tag -}}
 {{- end -}}
-{{/* The dependency uses explicit global backend values, checked against the parent service. */}}
+{{/* Vinyl VCL uses explicit global Fuseki backend values, checked against the parent service. */}}
 {{- define "vocabs.vcl" -}}
 vcl 4.1;
 backend default {

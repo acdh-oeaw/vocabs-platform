@@ -2,13 +2,14 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: {{ include "vocabs.fullname" . }}-varnish
+  name: {{ include "vocabs.fullname" . }}-vinyl
   labels:
     {{- include "vocabs.labels" . | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
-      {{- include "varnish-cache.selectorLabels" .Subcharts.varnish | nindent 6 }}
+      {{- include "vocabs.selector" . | nindent 6 }}
+      app.kubernetes.io/component: vinyl
   policyTypes: [Ingress]
   ingress:
     - from:
@@ -16,9 +17,10 @@ spec:
             matchLabels:
               {{- include "vocabs.selector" . | nindent 14 }}
               app.kubernetes.io/component: skosmos
-        {{- with .Values.networkPolicy.varnishAdditionalPeers }}
+        {{- with .Values.networkPolicy.vinylAdditionalPeers }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
       ports:
-        - {protocol: TCP, port: {{ .Values.varnish.server.http.port }}}
+        - protocol: TCP
+          port: {{ .Values.vinyl.service.targetPort }}
 {{- end }}

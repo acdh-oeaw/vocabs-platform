@@ -975,7 +975,7 @@
             "type": "object"
           }
         },
-        "varnishAdditionalPeers": {
+        "vinylAdditionalPeers": {
           "type": "array",
           "items": {
             "type": "object"
@@ -996,7 +996,7 @@
       },
       "additionalProperties": false
     },
-    "varnish": {
+    "vinyl": {
       "type": "object"
     },
     "gateway": {

@@ -6,7 +6,7 @@
    PVC usage, resource peaks, ACDH theme/plugin differences and proxy/redirect rules.
 3. Build reviewed images and deploy the chart in parallel, using an isolated
    namespace/hostname and no production traffic. Verify external ConfigMaps point
-   to the new Varnish service. Keep the original deployment intact.
+   to the new Vinyl Cache service. Keep the original deployment intact.
 4. Create a new candidate block-storage PVC using the environment's RBD class.
 5. Import the original immutable RDF dump with the selected Jena tools version.
 6. Build a fresh JenaText index with matching engine, graph and analyzer settings.

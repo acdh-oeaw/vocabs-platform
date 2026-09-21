@@ -5,7 +5,7 @@ Internet → Ingress (TLS) → Gateway Service :80 → Anubis :8080
                                                  ↓ localhost
                                         nginx-unprivileged 127.0.0.1:8081
                                                  ↓
-                                            Skosmos → Varnish → Fuseki
+                                            Skosmos → Vinyl Cache → Fuseki
 ```
 
 One namespaced Deployment contains both gateway containers. Only Anubis has a
@@ -54,7 +54,7 @@ The two selectors in one peer are ANDed. Separate peers are ORed. An empty list
 explicit deployment prerequisite, not a label guess. A host-network ingress
 controller may require a cluster-specific peer/ipBlock design. Skosmos admits
 only same-release gateway pods plus explicitly configured additional peers;
-Varnish and Fuseki retain their existing restrictions. Enforcement requires a
+Vinyl Cache and Fuseki retain their existing restrictions. Enforcement requires a
 supporting CNI and additive policies elsewhere can broaden access.
 
 ## Configuration and URL compatibility
@@ -198,7 +198,7 @@ Skosmos route; plan the controller reconciliation interval.
 Swagger remains separately configurable but a separate Swagger ingress bypasses
 Anubis. It defaults off and rendering requires explicit
 `swagger.ingress.allowAnubisBypass: true` to enable that path. This exception is
-for Swagger UI only; it cannot create a direct Skosmos/Varnish ingress. The
+for Swagger UI only; it cannot create a direct Skosmos/Vinyl Cache ingress. The
 development Swagger and Fuseki administrative hosts are private DNS names and
 are restricted by the NGINX source CIDRs documented in
 [admin-endpoints.md](admin-endpoints.md).

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build all three local images; never push automatically."""
+"""Build all local images; never push automatically."""
 import argparse, subprocess
 from pathlib import Path
 import yaml
@@ -13,15 +13,50 @@ if '@sha256:' not in a.java_base:
 profiles = yaml.safe_load(Path('chart/vocabs/compatibility.yaml').read_text())['profiles']
 s = profiles[a.stack]
 assert s['jena']['version'] == s['importer']['jenaVersion']
-for component, image in [('skosmos', 'vocabs-skosmos'), ('fuseki-runtime', 'vocabs-fuseki'), ('jena-tools', 'vocabs-jena-tools')]:
-    v = s['skosmos']['version'] if component == 'skosmos' else s['jena']['version']
-    revision = s['skosmos'].get('imageRevision', s['imageRevision']) if component == 'skosmos' else s['imageRevision']
-    args = ['docker', 'build', '-f', f'images/{component}/Dockerfile', '-t', f'{a.registry}/{image}:{v}-{revision}']
+debian_base = 'docker.io/library/debian:bookworm-slim@sha256:f3034a6ec3c1205360777c4aae76234998866ad18806ae62b63a3f84ccad782b'
+
+for component, image in [
+    ('skosmos', 'vocabs-skosmos'),
+    ('fuseki-runtime', 'vocabs-fuseki'),
+    ('jena-tools', 'vocabs-jena-tools'),
+    ('vinyl', 'vocabs-vinyl'),
+]:
     if component == 'skosmos':
-        args += ['--build-arg', f'SKOSMOS_UPSTREAM_TAG={s["skosmos"]["upstreamTag"]}']
+        v = s['skosmos']['version']
+        revision = s['skosmos'].get('imageRevision', s['imageRevision'])
+        tag = f'{a.registry}/{image}:{v}-{revision}'
+    elif component == 'vinyl':
+        v = s['vinyl']['version']
+        tag = f'{a.registry}/{image}:{v}'
+    else:
+        v = s['jena']['version']
+        revision = s['imageRevision']
+        tag = f'{a.registry}/{image}:{v}-{revision}'
+
+    args = ['docker', 'build', '-f', f'images/{component}/Dockerfile', '-t', tag]
+
+    if component == 'skosmos':
+        args += [
+            '--build-arg',
+            f'SKOSMOS_UPSTREAM_TAG={s["skosmos"]["upstreamTag"]}',
+        ]
+    elif component == 'vinyl':
+        args += [
+            '--build-arg', f'DEBIAN_BASE_IMAGE={debian_base}',
+            '--build-arg', f'VINYL_VERSION={v}',
+            '--build-arg', f'VINYL_SHA256={s["vinyl"]["sha256"]}',
+        ]
     else:
         checksum = s['jena']['fusekiSha512' if component == 'fuseki-runtime' else 'toolsSha512']
-        args += ['--build-arg', f'JAVA_BASE_IMAGE={a.java_base}', '--build-arg', f'JENA_VERSION={v}', '--build-arg', f'JENA_SHA512={checksum}']
+        args += [
+            '--build-arg', f'JAVA_BASE_IMAGE={a.java_base}',
+            '--build-arg', f'JENA_VERSION={v}',
+            '--build-arg', f'JENA_SHA512={checksum}',
+        ]
         if component == 'jena-tools':
-            args += ['--build-arg', f'FUSEKI_SHA512={s["jena"]["fusekiSha512"]}']
+            args += [
+                '--build-arg',
+                f'FUSEKI_SHA512={s["jena"]["fusekiSha512"]}',
+            ]
+
     subprocess.run(args + ['.'], check=True)
