@@ -37,12 +37,12 @@ class SkosmosTheme(unittest.TestCase):
 
     def test_templates_use_v3_slots_and_no_skosmos2_pages(self):
         templates = sorted((BRANDING / "custom-templates").rglob("*.twig"))
-        self.assertEqual(len(templates), 7)
+        self.assertEqual(len(templates), 9)
         for template in templates:
             self.assertNotIn('{% extends "light.twig" %}', template.read_text())
         self.assertEqual(
             {path.parent.name for path in templates},
-            {"html-head", "headerbar-top", "landing-end", "about", "footer", "topbar"},
+            {"html-head", "headerbar-top", "landing-end", "about", "footer", "topbar", "landing-top"},
         )
 
     def test_css_references_packaged_assets(self):
@@ -55,7 +55,7 @@ class SkosmosTheme(unittest.TestCase):
         self.assertNotRegex(logo, r"display:\s*none|visibility:\s*hidden")
         # Only Bootstrap spacing/type utilities need priority overrides.
         for prop in re.findall(r"([\w-]+)\s*:[^;{}]+!important", css):
-            self.assertIn(prop, {"padding-block", "padding", "margin-bottom", "font-size"})
+            self.assertIn(prop, {"padding-block", "padding", "margin-bottom", "margin-inline-start", "font-size", "display"})
 
     def test_both_upstream_logo_variants_are_rebranded(self):
         css = (BRANDING / "css/acdh-vocabs.css").read_text()
@@ -127,6 +127,21 @@ class SkosmosTheme(unittest.TestCase):
         r, g, b, alpha = map(float, re.findall(r"[\d.]+", resolve("--acdh-hero-overlay")))
         background = [alpha * c + (1 - alpha) * 255 for c in (r, g, b)]
         self.assertGreaterEqual(contrast(rgb(resolve("--acdh-on-hero")), background), 4.5)
+
+    def test_hero_slots_and_shared_width(self):
+        slots = BRANDING / "custom-templates"
+        landing = (slots / "landing-top/10-acdh-hero.twig").read_text()
+        about = (slots / "about/05-acdh-hero.twig").read_text()
+        for hero in (landing, about):
+            self.assertIn('class="acdh-hero"', hero)
+            self.assertIn("Vocabs services", hero)
+        old = (slots / "landing-end/10-acdh-intro.twig").read_text()
+        self.assertNotIn("<", old)
+        css = (BRANDING / "css/acdh-vocabs.css").read_text()
+        self.assertIn("--acdh-content-width:", css)
+        self.assertIn("max-width: var(--acdh-content-width)", css)
+        self.assertIn("var(--acdh-hero-overlay)", css)
+        self.assertIn("var(--acdh-on-hero)", css)
 
     def test_navigation_behavior(self):
         subprocess.run(["node", str(ROOT / "tests/theme_navigation.mjs")], check=True)

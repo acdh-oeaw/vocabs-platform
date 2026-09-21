@@ -232,3 +232,45 @@ upstream logo, turquoise search accents, readable white hero copy, light footer,
 and keyboard focus. Responsive structure, Fira Sans, the empty-state wording,
 and the compact two-column layout remain Skosmos 3 adaptations. No versions
 are changed by this palette pass and nothing is published.
+
+## Structural alignment after r5
+
+The palette is unchanged. The legacy `fundament_header.twig` uses a bounded
+navigation container and `fundament_header_hero.twig` places service copy over
+the image. Their composition is adapted without importing Foundation markup.
+
+- `topbar` retains its existing guarded global-search identity; inner-page
+  `#skosmos-logo-top` and landing-only `headerbar-top` remain mutually exclusive.
+  CSS gives navigation, landing header and footer a shared 72rem maximum, compact
+  7–9rem header logos, restrained padding and wrapping. Internal navigation now
+  follows the logo rather than being pushed to the far edge; languages retain
+  right-side auto spacing. Landing retains a shallow separate identity row to
+  preserve native DOM/tab order and its hidden h1.
+- `landing-top` now contains the bounded Vocabs services hero. `landing-end`
+  contains only a comment to suppress the upstream placeholder, and its empty
+  column is hidden. The native vocabulary list occupies the width below the
+  hero, including real empty states and populated categories.
+- About uses `about/05-acdh-hero.twig`, before `10-acdh-services.twig`. Source
+  inspection confirms About has neither `headerbar-bottom` nor a generic
+  `main-content-top` slot. Therefore its native About h1 remains above the hero:
+  placing the banner literally before that heading would require DOM movement
+  or a page override. This small intentional difference preserves reading order.
+  The concise hero summary avoids repeating the detailed service paragraph.
+- Shared `.acdh-hero` styling uses the existing image and contrast-tested overlay
+  and text tokens. Height follows content; no fixed hero height is introduced.
+- Nested upstream About/Feedback container padding is reduced from 8rem. About
+  has a 72rem outer region with readable paragraph lengths; Feedback is bounded
+  to 48rem. Footer uses the same site grid with a smaller logo. Native search,
+  heading semantics, skip repair and accessible names remain intact.
+
+Active slots: `html-head`, `topbar`, `headerbar-top`, `landing-top`, `landing-end`
+(intentional empty placeholder suppression), `about`, and `footer`.
+
+Browser QA: check 320px, tablet, desktop, ultrawide and 200% zoom on landing,
+About, Feedback, vocabulary, concept and both search variants. Confirm one
+header identity, sensible wrapping/tab order, visible languages, unclipped focus,
+Skip to main behavior, white hero copy, related-tools columns, intentional form
+width and footer alignment. Check both empty and populated vocabulary listings
+without inventing data. These remain deployment checks, not claimed browser
+results. This structural pass targets Skosmos `3.3-r6` and chart
+`0.2.0-dev.10`; shared Fuseki/Jena revisions and appVersion stay unchanged.

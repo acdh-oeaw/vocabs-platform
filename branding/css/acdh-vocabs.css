@@ -24,6 +24,7 @@
 
 /* Palette provenance and contrast deviations: docs/skosmos-branding.md. */
 :root {
+  --acdh-content-width: 72rem;
   --acdh-primary: #88dbdf;
   --acdh-accent: #5cc0c4;
   --acdh-text: #444444;
@@ -94,12 +95,12 @@ body {
   margin-bottom: 0;
 }
 
-.acdh-landing-intro {
+.acdh-hero {
   color: var(--acdh-text);
   padding: 1.25rem;
 }
 
-.acdh-landing-intro h2,
+.acdh-hero h2,
 .acdh-about h2,
 .acdh-footer h2 {
   color: var(--acdh-heading);
@@ -120,7 +121,7 @@ footer {
 
 .acdh-footer {
   margin: 0 auto;
-  max-width: 72rem;
+  max-width: var(--acdh-content-width);
   padding: 1.5rem 1rem;
   overflow-wrap: anywhere;
 }
@@ -135,14 +136,14 @@ footer {
 }
 
 #headerbar-top-slot {
-  max-width: 72rem;
+  max-width: var(--acdh-content-width);
   margin-inline: auto;
 }
 
 .acdh-header-logo img {
   display: block;
   height: auto;
-  width: clamp(9rem, 24vw, 12rem);
+  width: clamp(7rem, 16vw, 9rem);
   max-width: 100%;
 }
 
@@ -162,7 +163,7 @@ footer {
   border: .5rem solid var(--acdh-surface);
   border-radius: .25rem;
   flex-shrink: 0;
-  width: clamp(9rem, 24vw, 12rem);
+  width: clamp(7rem, 16vw, 9rem);
   height: auto;
   aspect-ratio: 259.186 / 73.131;
   box-sizing: content-box;
@@ -180,7 +181,7 @@ footer {
 }
 
 #main-container.landing > .container {
-  max-width: 72rem;
+  max-width: var(--acdh-content-width);
   padding-inline: 1rem;
 }
 
@@ -221,7 +222,7 @@ footer {
   margin: 0;
 }
 
-.acdh-landing-intro {
+.acdh-hero {
   border-top: 3px solid var(--acdh-primary);
   color: var(--acdh-on-hero);
   --focus-color: var(--acdh-on-hero);
@@ -229,7 +230,7 @@ footer {
     url("../../pics/acdh/vocabs-intro-bg.jpg") center / cover;
 }
 
-.acdh-landing-intro > :last-child,
+.acdh-hero > :last-child,
 .acdh-footer p:last-child {
   margin-bottom: 0;
 }
@@ -274,7 +275,7 @@ footer {
 @media (min-width: 992px) {
   #landing-start-slot,
   #landing-end-slot {
-    width: 50%;
+    width: 100%;
   }
 
   #landing-end-slot {
@@ -298,17 +299,17 @@ footer {
 }
 
 /* Preserve the hero's white typography without changing its slot or geometry. */
-.acdh-landing-intro h2,
-.acdh-landing-intro a {
+.acdh-hero h2,
+.acdh-hero a {
   color: var(--acdh-on-hero);
 }
 
-.acdh-landing-intro a {
+.acdh-hero a {
   text-decoration: underline;
   text-underline-offset: .2em;
 }
 
-.acdh-landing-intro a:hover {
+.acdh-hero a:hover {
   text-decoration-thickness: .15em;
 }
 
@@ -324,4 +325,99 @@ footer {
 
 #main-container a:hover {
   text-decoration: underline;
+}
+
+/* One bounded navigation row; leave upstream DOM and keyboard order intact. */
+#topbar {
+  max-width: var(--acdh-content-width);
+  margin-inline: auto;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .5rem 1rem;
+  padding: .5rem 1rem !important;
+}
+
+#topbar-nav {
+  flex: 1 1 auto;
+  margin-inline-start: 0 !important;
+  padding-block: .5rem !important;
+  gap: .5rem;
+}
+
+#topbar-nav > .language {
+  margin-inline-start: auto;
+}
+
+#topbar-nav > .language ~ .language {
+  margin-inline-start: 0;
+}
+
+#global-search-toggle {
+  white-space: normal;
+  text-align: start;
+  padding-block: .5rem !important;
+}
+
+.frontpage-logo #headerbar {
+  padding-block: .5rem !important;
+}
+
+#landing-start-slot {
+  width: 100%;
+}
+
+/* Empty slot fragment suppresses Skosmos' optional placeholder. */
+#landing-end-slot {
+  display: none !important;
+}
+
+.acdh-hero {
+  padding: clamp(1.5rem, 4vw, 3rem);
+  margin-bottom: 1.5rem;
+}
+
+.acdh-hero p {
+  max-width: 65ch;
+}
+
+#main-container.about > .container {
+  max-width: var(--acdh-content-width);
+}
+
+#main-container.feedback > .container {
+  max-width: 48rem;
+}
+
+#main-container.about > .container,
+#main-container.feedback > .container {
+  padding-inline: 1rem;
+}
+
+#main-container.about .acdh-about > p {
+  max-width: 75ch;
+}
+
+.acdh-footer img {
+  width: 9rem;
+}
+
+/* Upstream applies 8rem padding to every nested About/Feedback container. */
+#main-container.about #main-container-row > .container,
+#main-container.feedback #main-container-row > .container {
+  padding-inline: 1rem;
+}
+
+#main-container.about,
+#main-container.feedback {
+  padding-top: 1.5rem;
+}
+
+#main-container.about h1 {
+  margin-bottom: 1.5rem !important;
+}
+
+@media (max-width: 575.98px) {
+  #feedback-form {
+    padding-inline: 1rem;
+  }
 }
