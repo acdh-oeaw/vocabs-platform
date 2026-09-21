@@ -22,35 +22,61 @@
   font-display: swap;
 }
 
+/* Palette provenance and contrast deviations: docs/skosmos-branding.md. */
 :root {
-  --acdh-pink: #ed0d6c;
-  --acdh-cyan: #00acd3;
-  --acdh-ink: #394554;
-  --acdh-muted: #74787a;
-  --acdh-surface: #f6f7f8;
-  --acdh-border: #d5dbde;
-  --dark-color: var(--acdh-ink);
-  --muted-color: var(--acdh-muted);
-  --medium-color: #00748f;
-  --secondary-medium-color: #b9c1c6;
-  --light-color: var(--acdh-border);
-  --secondary-light-color: var(--acdh-surface);
-  --body-text: var(--acdh-ink);
-  --topbar-bg-1: var(--acdh-ink);
-  --topbar-bg-2: var(--acdh-ink);
-  --headerbar-bg-1: #ffffff;
-  --headerbar-bg-2: #ffffff;
-  --headerbar-text: var(--acdh-ink);
-  --search-button-bg: var(--acdh-pink);
-  --search-dropdown-selected-bg: var(--acdh-pink);
-  --main-bg-1: #ffffff;
-  --main-bg-2: var(--acdh-surface);
-  --main-bg-3: #ffffff;
-  --main-content-bg: #ffffff;
-  --main-content-text: var(--acdh-ink);
-  --main-content-link: var(--medium-color);
-  --footer-bg: var(--acdh-ink);
-  --footer-text: #ffffff;
+  --acdh-primary: #88dbdf;
+  --acdh-accent: #5cc0c4;
+  --acdh-text: #444444;
+  --acdh-muted-text: #555555;
+  --acdh-heading: #212529;
+  --acdh-link: #00748f;
+  --acdh-link-hover: #23527c;
+  --acdh-surface: #ffffff;
+  --acdh-page-bg: #f1f1f1;
+  --acdh-border: rgba(0, 0, 0, .15);
+  --acdh-divider: #d4edeb;
+  --acdh-footer-bg: #ffffff;
+  --acdh-footer-text: #212529;
+  /* Legacy hero rgba(108,117,125,.75), darkened for white text contrast. */
+  --acdh-hero-overlay: rgba(76, 82, 88, .9);
+  --acdh-on-hero: #ffffff;
+  --dark-color: var(--acdh-text);
+  --muted-color: var(--acdh-muted-text);
+  --medium-color: var(--acdh-link);
+  --secondary-medium-color: var(--acdh-accent);
+  --light-color: var(--acdh-divider);
+  --secondary-light-color: var(--acdh-page-bg);
+  --body-text: var(--acdh-text);
+  --focus-color: var(--acdh-link-hover);
+  --topbar-bg-1: var(--acdh-surface);
+  --topbar-bg-2: var(--acdh-surface);
+  --topbar-text-1: var(--acdh-text);
+  --topbar-text-2: var(--acdh-text);
+  --headerbar-bg-1: var(--acdh-surface);
+  --headerbar-bg-2: var(--acdh-primary);
+  --headerbar-text: var(--acdh-heading);
+  --headerbar-text-1: var(--acdh-heading);
+  --headerbar-text-2: var(--acdh-heading);
+  --search-button-bg: var(--acdh-primary);
+  --search-button-text: var(--acdh-heading);
+  --search-border: var(--acdh-link);
+  --search-dropdown-selected-bg: var(--acdh-link);
+  --search-dropdown-hover-bg: var(--acdh-link-hover);
+  --search-dropdown-selected-text: var(--acdh-surface);
+  --search-dropdown-hover-text: var(--acdh-surface);
+  --main-bg-1: var(--acdh-surface);
+  --main-bg-2: var(--acdh-page-bg);
+  --main-bg-3: var(--acdh-page-bg);
+  --main-content-bg: var(--acdh-surface);
+  --main-content-text: var(--acdh-text);
+  --main-content-link: var(--acdh-link);
+  --landing-vocabulary-list-bg: var(--acdh-surface);
+  --landing-vocabulary-list-heading: var(--acdh-heading);
+  --sidebar-tab-active-bg: var(--acdh-link);
+  --sidebar-selected: var(--acdh-link);
+  --feedback-submit-bg: var(--acdh-link);
+  --footer-bg: var(--acdh-footer-bg);
+  --footer-text: var(--acdh-footer-text);
   --font-family: "Fira Sans", sans-serif;
   --font-family-heading: "Fira Sans", sans-serif;
 }
@@ -60,7 +86,7 @@ body {
 }
 
 #headerbar {
-  border-bottom: 4px solid var(--acdh-cyan);
+  border-bottom: 4px solid var(--acdh-primary);
 }
 
 #headerbar-top-slot .acdh-header-logo {
@@ -69,14 +95,14 @@ body {
 }
 
 .acdh-landing-intro {
-  color: var(--acdh-ink);
+  color: var(--acdh-text);
   padding: 1.25rem;
 }
 
 .acdh-landing-intro h2,
 .acdh-about h2,
 .acdh-footer h2 {
-  color: #ae0950;
+  color: var(--acdh-heading);
   font-size: 1.35rem;
   font-weight: 700;
 }
@@ -88,7 +114,7 @@ body {
 
 footer {
   background: var(--footer-bg);
-  border-top: 4px solid var(--acdh-pink);
+  border-top: 1px solid var(--acdh-border);
   color: var(--footer-text);
 }
 
@@ -97,11 +123,10 @@ footer {
   max-width: 72rem;
   padding: 1.5rem 1rem;
   overflow-wrap: anywhere;
-  --focus-color: #ffffff;
 }
 
 .acdh-footer a {
-  color: #ffffff;
+  color: var(--acdh-footer-text);
 }
 
 /* Bootstrap spacing/type utilities use !important; override only these slots. */
@@ -133,8 +158,8 @@ footer {
   background-image: url("../../pics/acdh/vocabs-logo.svg");
   background-size: contain;
   background-position: center;
-  background-color: white;
-  border: .5rem solid white;
+  background-color: var(--acdh-surface);
+  border: .5rem solid var(--acdh-surface);
   border-radius: .25rem;
   flex-shrink: 0;
   width: clamp(9rem, 24vw, 12rem);
@@ -144,8 +169,8 @@ footer {
 }
 
 .acdh-topbar-identity {
-  background: white;
-  border: .5rem solid white;
+  background: var(--acdh-surface);
+  border: .5rem solid var(--acdh-surface);
   border-radius: .25rem;
 }
 
@@ -185,8 +210,7 @@ footer {
 }
 
 #vocabulary-list {
-  --landing-vocabulary-list-bg: #ffffff;
-  border-top: 3px solid var(--acdh-cyan);
+  border-top: 3px solid var(--acdh-primary);
   padding: 1.25rem !important;
 }
 
@@ -198,8 +222,10 @@ footer {
 }
 
 .acdh-landing-intro {
-  border-top: 3px solid var(--acdh-pink);
-  background: linear-gradient(rgba(255, 255, 255, .95), rgba(255, 255, 255, .95)),
+  border-top: 3px solid var(--acdh-primary);
+  color: var(--acdh-on-hero);
+  --focus-color: var(--acdh-on-hero);
+  background: linear-gradient(var(--acdh-hero-overlay), var(--acdh-hero-overlay)),
     url("../../pics/acdh/vocabs-intro-bg.jpg") center / cover;
 }
 
@@ -209,7 +235,7 @@ footer {
 }
 
 .acdh-footer img {
-  background: #ffffff;
+  background: var(--acdh-surface);
   border-radius: .25rem;
   padding: .5rem;
   width: 11rem;
@@ -218,7 +244,7 @@ footer {
 }
 
 .acdh-footer h2 {
-  color: #ffffff;
+  color: var(--acdh-footer-text);
   font-size: 1.15rem;
   margin-bottom: .75rem;
 }
@@ -230,7 +256,7 @@ footer {
 
 .acdh-footer a:hover,
 .acdh-footer a:focus-visible {
-  color: #9cecff;
+  color: var(--acdh-link-hover);
   text-decoration-thickness: .15em;
 }
 
@@ -241,8 +267,8 @@ footer {
   left: .75rem;
   z-index: 1100;
   padding: .75rem 1rem;
-  background: #ffffff;
-  color: var(--acdh-ink);
+  background: var(--acdh-surface);
+  color: var(--acdh-text);
 }
 
 @media (min-width: 992px) {
@@ -269,4 +295,33 @@ footer {
     flex-wrap: wrap;
     row-gap: .75rem;
   }
+}
+
+/* Preserve the hero's white typography without changing its slot or geometry. */
+.acdh-landing-intro h2,
+.acdh-landing-intro a {
+  color: var(--acdh-on-hero);
+}
+
+.acdh-landing-intro a {
+  text-decoration: underline;
+  text-underline-offset: .2em;
+}
+
+.acdh-landing-intro a:hover {
+  text-decoration-thickness: .15em;
+}
+
+#topbar #topbar-nav .nav-item a:hover,
+#topbar #topbar-nav .nav-item a:focus-visible,
+#global-search-toggle:hover {
+  color: var(--acdh-link-hover);
+}
+
+#global-search-bar {
+  background-color: var(--acdh-primary);
+}
+
+#main-container a:hover {
+  text-decoration: underline;
 }

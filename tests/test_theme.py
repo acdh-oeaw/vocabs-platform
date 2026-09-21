@@ -85,6 +85,49 @@ class SkosmosTheme(unittest.TestCase):
         self.assertIn('<li class="nav-item acdh-topbar-identity">', topbar)
         self.assertIn('alt="ACDH Vocabs"', topbar)
 
+    def test_palette_semantics_and_contrast(self):
+        css = (BRANDING / "css/acdh-vocabs.css").read_text()
+        root = css.split(":root {", 1)[1].split("}", 1)[0]
+        tokens = dict(re.findall(r"(--[\w-]+):\s*([^;]+);", root))
+
+        def resolve(name):
+            value = tokens[name]
+            if value.startswith("var("):
+                return resolve(value[4:-1])
+            return value
+
+        def rgb(value):
+            return tuple(int(value[i:i+2], 16) for i in (1, 3, 5))
+
+        def luminance(channels):
+            channels = [c / 255 for c in channels]
+            linear = [c / 12.92 if c <= .04045 else ((c + .055) / 1.055) ** 2.4 for c in channels]
+            return sum(c * w for c, w in zip(linear, (.2126, .7152, .0722)))
+
+        def contrast(foreground, background):
+            a, b = sorted((luminance(foreground), luminance(background)))
+            return (b + .05) / (a + .05)
+
+        for text, bg in [
+            ("--topbar-text-1", "--topbar-bg-1"),
+            ("--topbar-text-2", "--topbar-bg-2"),
+            ("--headerbar-text-2", "--headerbar-bg-2"),
+            ("--footer-text", "--footer-bg"),
+            ("--main-content-text", "--main-content-bg"),
+            ("--main-content-link", "--main-content-bg"),
+            ("--acdh-link", "--acdh-page-bg"),
+            ("--search-button-text", "--search-button-bg"),
+            ("--search-dropdown-selected-text", "--search-dropdown-selected-bg"),
+        ]:
+            self.assertGreaterEqual(contrast(rgb(resolve(text)), rgb(resolve(bg))), 4.5, (text, bg))
+        self.assertEqual(resolve("--topbar-bg-1"), resolve("--acdh-surface"))
+        self.assertEqual(resolve("--footer-bg"), resolve("--acdh-surface"))
+        self.assertNotRegex(css.lower(), r"--acdh-pink|#ae0950|#ed0d6c")
+        # White image pixels give the worst-case hero contrast under this overlay.
+        r, g, b, alpha = map(float, re.findall(r"[\d.]+", resolve("--acdh-hero-overlay")))
+        background = [alpha * c + (1 - alpha) * 255 for c in (r, g, b)]
+        self.assertGreaterEqual(contrast(rgb(resolve("--acdh-on-hero")), background), 4.5)
+
     def test_navigation_behavior(self):
         subprocess.run(["node", str(ROOT / "tests/theme_navigation.mjs")], check=True)
 

@@ -172,3 +172,63 @@ visit **`/en/about` and `/en/feedback`**, then a configured vocabulary, concept,
 vocabulary search and global search. Each header should show exactly one ACDH
 identity and no Skosmos logo at mobile/desktop sizes. Check home-link keyboard
 focus, accessible service names, navigation wrapping and title/search usability.
+
+## Production palette migration (after deployed r4)
+
+Authoritative source: [vocabs-update-theme at 46e0fa7](https://github.com/acdh-oeaw/vocabs-update-theme/tree/46e0fa7e0ea79eba7188298a716d22e09f55cc01).
+The production homepage was also inspected: it loads `styles.css`,
+`stylesheet.css`, then `fundament.min.css` and `fundament-vocabs.css` in that order.
+The final Fundament overrides, not the earlier Skosmos defaults or unused
+framework classes, establish the white navigation/footer and turquoise strips.
+
+| Legacy source/token or selector | Exact value | Skosmos 3 mapping |
+|---|---|---|
+| `fundament-vocabs.css`: main border, headerbar, search buttons; `fundament.min.css`: navbar border | `#88dbdf` | `--acdh-primary`: separator, vocabulary header/search backgrounds |
+| `fundament-vocabs.css`: `.search-vocab-text` | `#5cc0c4` | `--acdh-accent`: secondary accents/underline and scrollbar token |
+| `fundament-vocabs.css`: links / hover | `#00748f` / `#23527c` | `--acdh-link` / `--acdh-link-hover`: links, selected controls, focus |
+| `fundament.min.css`: body / headings and final footer | `#444` / `#212529` | `--acdh-text` / `--acdh-heading`, `--acdh-footer-text` |
+| `styles.css`: gray-850 | `#555555` | `--acdh-muted-text`: readable secondary text |
+| `fundament.min.css`: final navbar/footer backgrounds | `#fff` | `--acdh-surface`, `--acdh-footer-bg`, both topbar variants |
+| `fundament.min.css`: final body background | `#f1f1f1` | `--acdh-page-bg`: inner-page surfaces |
+| `fundament.min.css`: footer separator | `rgba(0,0,0,.15)` | `--acdh-border`: restrained footer divider |
+| `styles.css`: light-color | `#d4edeb` | `--acdh-divider`: content dividers |
+| `fundament.min.css`: hero overlay | `rgba(108,117,125,.75)` | `--acdh-hero-overlay`: darker accessible derivative below |
+| `fundament_header_hero.twig`, `.hero-dark`, `.lead` | white text over image | `--acdh-on-hero`: intro heading, copy, underlined link |
+
+`view/light.twig` establishes the stylesheet cascade;
+`view/fundament_header_hero.twig` selects `resource/pics/vocabs_intro_bg.jpg`;
+`view/fundament_footer.twig` supplies the light footer classes. The packaged
+`branding/images/vocabs-intro-bg.jpg` is byte-identical to the legacy image
+(SHA-256 `8f2feed2a38d1dd0665ac9f48a8c5cd7a541703788653c26d4d5ed2cf52e5568`).
+The earlier 95% white wash is replaced with the legacy grey-overlay/white-text
+approach, confined to the existing intro card rather than a full-width hero.
+
+The r4 navy surface `#394554`, generic cyan `#00acd3`, magenta borders/buttons
+`#ed0d6c`, dark pink headings `#ae0950`, and pale cyan footer hover `#9cecff` are
+removed from general theme styling. Magenta really exists in legacy `styles.css`
+as `--alert-color-bright` (with pale `#d95f8a`); it is not a sitewide brand accent.
+We do not recolor upstream semantic alerts or modify colors embedded in logos.
+Obsolete Bootstrap/Foundation grid, control, fixed-height, global-font and
+focus-suppression rules are not migrated. All new palette literals live in the
+root semantic tokens; page/header branching and navigation repair are unchanged.
+
+Accessibility deviations from exact legacy styling:
+
+- White text on `#88dbdf`/`#5cc0c4` is too low-contrast for normal text. Search
+  buttons and vocabulary header titles instead use legacy dark `#212529` on
+  turquoise. Selected dropdowns use legacy `#00748f` with white text.
+- The hero overlay uses `rgba(76,82,88,.9)`, a darker version of the source
+  grey-blue overlay, to guarantee at least 4.5:1 white-text contrast even over
+  white image pixels. The image remains visible but more subdued.
+- Secondary text uses existing legacy `#555555` rather than `#74787a` for contrast
+  on light grey surfaces. Focus outlines remain visible: dark on light surfaces,
+  white within the hero. No legacy `outline: none` rules are copied.
+
+Regression tests check semantic light-surface mappings and text contrast,
+including the worst-case hero image background, rather than every cosmetic
+value. Keep visual QA for `/en/`, `/en/about`, `/en/feedback`, vocabulary home,
+concept, vocabulary search and global search: one ACDH header identity, no
+upstream logo, turquoise search accents, readable white hero copy, light footer,
+and keyboard focus. Responsive structure, Fira Sans, the empty-state wording,
+and the compact two-column layout remain Skosmos 3 adaptations. No versions
+are changed by this palette pass and nothing is published.
