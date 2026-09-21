@@ -3,6 +3,24 @@ entries:
   vocabs:
   - apiVersion: v2
     appVersion: 2026.09.0-dev
+    created: "2026-09-21T08:03:46.514257598Z"
+    dependencies:
+    - alias: varnish
+      name: varnish-cache
+      repository: oci://registry-1.docker.io/varnish
+      version: 0.1.3
+    description: ACDH Vocabs platform — Anubis/Nginx gateway, Skosmos, Varnish and
+      single-writer Fuseki
+    digest: 478fbd50fff4476769fc4dad756ead8e6aee5a9481b41cc21e4180716c7a16ab
+    home: https://github.com/acdh-oeaw/vocabs-platform
+    kubeVersion: '>=1.28.0-0'
+    name: vocabs
+    type: application
+    urls:
+    - https://github.com/acdh-oeaw/vocabs-platform/releases/download/vocabs-0.2.0-dev.11/vocabs-0.2.0-dev.11.tgz
+    version: 0.2.0-dev.11
+  - apiVersion: v2
+    appVersion: 2026.09.0-dev
     created: "2026-09-21T07:47:22.112120874Z"
     dependencies:
     - alias: varnish
@@ -199,4 +217,4 @@ entries:
     urls:
     - https://github.com/acdh-oeaw/vocabs-platform/releases/download/vocabs-0.2.0-dev/vocabs-0.2.0-dev.tgz
     version: 0.2.0-dev
-generated: "2026-09-21T07:47:22.112156767Z"
+generated: "2026-09-21T08:03:46.514291462Z"
