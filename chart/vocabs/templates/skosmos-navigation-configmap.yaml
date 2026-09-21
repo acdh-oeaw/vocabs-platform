@@ -1,0 +1,24 @@
+{{- if .Values.skosmos.enabled }}
+{{- $api := .Values.skosmos.navigation.apiUrl -}}
+{{- if and (not $api) .Values.swagger.enabled .Values.swagger.ingress.enabled -}}
+{{- $api = printf "%s://%s/" (ternary "https" "http" .Values.swagger.ingress.tls.enabled) .Values.swagger.ingress.host -}}
+{{- end -}}
+{{- $nav := dict "editorUrl" .Values.skosmos.navigation.editorUrl "apiUrl" $api -}}
+{{- range $name, $url := $nav -}}
+{{- if $url -}}
+{{- $parsed := urlParse $url -}}
+{{- $host := lower (regexReplaceAll ":[0-9]+$" ($parsed.host | default "") "") -}}
+{{- if or (not (regexMatch `^https?://[^\s<>"{}\\]+$` $url)) $parsed.userinfo (not (contains "." $host)) (regexMatch `(^localhost$|\.localhost$|\.local$|\.internal$|\.svc($|\.)|\.cluster\.local$|^[0-9.]+$|:)` $host) -}}
+{{- fail (printf "skosmos.navigation.%s must be a public HTTP(S) URL without credentials or internal/IP hostnames" $name) -}}
+{{- end -}}
+{{- end -}}
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "vocabs.fullname" . }}-skosmos-navigation
+  labels:
+    {{- include "vocabs.labels" . | nindent 4 }}
+data:
+  acdh-navigation.json: {{ $nav | toJson | quote }}
+{{- end }}

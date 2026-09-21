@@ -207,3 +207,7 @@ The chart publishes to `https://acdh-oeaw.github.io/vocabs-platform/` after the
 one-time GitHub Pages setup. See [Helm publishing and Rancher installation](docs/rancher.md)
 for release versioning, GitHub settings, repository registration and development
 pilot values. Chart packages include the pinned Varnish dependency.
+
+Navigation destinations and environment-aware Swagger links are documented in
+[the navigation guide](docs/navigation.md). Configure external destinations with
+`skosmos.navigation`; Help and language switching reuse native Skosmos content.

@@ -22,6 +22,7 @@ spec:
         {{- with .Values.skosmos.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
+        checksum/navigation: {{ include (print $.Template.BasePath "/skosmos-navigation-configmap.yaml") . | sha256sum }}
         checksum/config: {{ include (print $.Template.BasePath "/skosmos-configmap.yaml") . | sha256sum }}
         vocabs.acdh.oeaw.ac.at/config-revision: {{ .Values.skosmos.config.revision | quote }}
     spec:
@@ -51,11 +52,18 @@ spec:
               port: http
             {{- toYaml (omit .Values.skosmos.livenessProbe "path") | nindent 12 }}
           volumeMounts:
+            - name: navigation
+              mountPath: /var/www/html/resource/acdh-navigation.json
+              subPath: acdh-navigation.json
+              readOnly: true
             - name: config
               mountPath: /var/www/html/config.ttl
               subPath: config.ttl
               readOnly: true
       volumes:
+        - name: navigation
+          configMap:
+            name: {{ include "vocabs.fullname" . }}-skosmos-navigation
         - name: config
           configMap:
             name: {{ default (printf "%s-skosmos-config" (include "vocabs.fullname" .)) .Values.skosmos.config.existingConfigMap }}

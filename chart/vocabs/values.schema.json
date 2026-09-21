@@ -273,6 +273,22 @@
             "timeoutSeconds",
             "failureThreshold"
           ]
+        },
+        "navigation": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "editorUrl": {
+              "type": "string"
+            },
+            "apiUrl": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "editorUrl",
+            "apiUrl"
+          ]
         }
       },
       "additionalProperties": false

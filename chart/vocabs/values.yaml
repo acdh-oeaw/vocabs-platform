@@ -28,6 +28,9 @@ serviceAccount:
   annotations: {}
 
 skosmos:
+  navigation:
+    editorUrl: "https://vocabseditor.acdh.oeaw.ac.at/" # Verified public service; empty keeps native About#editor.
+    apiUrl: "" # Empty derives from enabled Swagger ingress; otherwise API links are omitted.
   enabled: true
   replicas: 1 # Use 2+ after checking statelessness of migrated plugins.
   image:

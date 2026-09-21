@@ -37,7 +37,7 @@ class SkosmosTheme(unittest.TestCase):
 
     def test_templates_use_v3_slots_and_no_skosmos2_pages(self):
         templates = sorted((BRANDING / "custom-templates").rglob("*.twig"))
-        self.assertEqual(len(templates), 10)
+        self.assertEqual(len(templates), 12)
         for template in templates:
             self.assertNotIn('{% extends "light.twig" %}', template.read_text())
         self.assertEqual(
@@ -155,6 +155,24 @@ class SkosmosTheme(unittest.TestCase):
         self.assertNotRegex(css, r"(?:width|margin-inline):[^;]*100vw")
         self.assertNotRegex(css, r"overflow-x:\s*(?:hidden|clip)")
         subprocess.run(["node", str(ROOT / "tests/theme_landing_search.mjs")], check=True)
+
+    def test_production_navigation_contract(self):
+        slots = BRANDING / "custom-templates"
+        nav = (slots / "topbar/20-acdh-navigation.twig").read_text()
+        self.assertIn("'about' | global_url(request.lang, request.contentLang, null)", nav)
+        self.assertIn("request.lang | lang_name(request.lang)", nav)
+        self.assertIn("'Interface language' | trans", nav)
+        self.assertIn("'helper_help' | trans", nav)
+        self.assertIn("'search_example_text' | trans", nav)
+        self.assertNotIn("request.langurl", nav)  # Alternate links stay upstream.
+        self.assertNotIn("English", nav)
+        self.assertNotIn('id="navi', nav)
+        self.assertNotIn('target="_blank"', nav)
+        self.assertNotIn("https://", nav)
+        css = (BRANDING / "css/acdh-vocabs.css").read_text()
+        self.assertIn(".nav-item:has(> #navi3)", css)
+        self.assertNotRegex(css, r"#navi[12]\s*\{[^}]*display:\s*none")
+        subprocess.run(["node", str(ROOT / "tests/theme_navigation_config.mjs")], check=True)
 
     def test_navigation_behavior(self):
         subprocess.run(["node", str(ROOT / "tests/theme_navigation.mjs")], check=True)

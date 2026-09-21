@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Cluster-free assertions on real rendered manifests, including negative cases."""
-import copy, re, subprocess, tempfile, unittest
+import copy, json, re, subprocess, tempfile, unittest
 from pathlib import Path
 import yaml
 CHART = 'chart/vocabs'
@@ -30,6 +30,40 @@ def find(docs, kind, suffix=''):
 def candidate():
     return {'imports': {'job': {'enabled': True}, 'targetClaim': 'candidate', 'source': {'pvc': {'existingClaim': 'source'}}}}
 class Rendering(unittest.TestCase):
+    def test_navigation_defaults_and_external_config(self):
+        docs = render()
+        nav = json.loads(find(docs, 'ConfigMap', 'skosmos-navigation')['data']['acdh-navigation.json'])
+        self.assertEqual(nav, {'editorUrl': 'https://vocabseditor.acdh.oeaw.ac.at/', 'apiUrl': ''})
+        empty = render({'skosmos': {'navigation': {'editorUrl': '', 'apiUrl': ''}}})
+        self.assertEqual(json.loads(find(empty, 'ConfigMap', 'skosmos-navigation')['data']['acdh-navigation.json']), {'editorUrl': '', 'apiUrl': ''})
+        values = yaml.safe_load(Path('environments/example.yaml').read_text())
+        values.setdefault('skosmos', {})['navigation'] = {'editorUrl': 'https://editor.example.org/'}
+        docs = render(values)
+        nav = json.loads(find(docs, 'ConfigMap', 'skosmos-navigation')['data']['acdh-navigation.json'])
+        self.assertEqual(nav['editorUrl'], 'https://editor.example.org/')
+        deploy = find(docs, 'Deployment', 'skosmos')['spec']['template']
+        self.assertIn('checksum/navigation', deploy['metadata']['annotations'])
+        mounts = deploy['spec']['containers'][0]['volumeMounts']
+        self.assertTrue(any(m['mountPath']=='/var/www/html/resource/acdh-navigation.json' and m['readOnly'] for m in mounts))
+
+    def test_navigation_swagger_url_and_override(self):
+        values = {'swagger': {'enabled': True, 'specUrl': 'https://vocabs.example.org/swagger.json',
+                  'ingress': {'enabled': True, 'allowAnubisBypass': True, 'host': 'api-dev.example.org',
+                              'tls': {'enabled': True, 'secretName': 'api-tls'}}}}
+        docs = render(values)
+        nav = json.loads(find(docs, 'ConfigMap', 'skosmos-navigation')['data']['acdh-navigation.json'])
+        self.assertEqual(nav['apiUrl'], 'https://api-dev.example.org/')
+        self.assertNotIn('sparql', nav['apiUrl'])
+        values['skosmos'] = {'navigation': {'apiUrl': 'https://docs.example.org/ui/?a=1&b=2'}}
+        nav = json.loads(find(render(values), 'ConfigMap', 'skosmos-navigation')['data']['acdh-navigation.json'])
+        self.assertEqual(nav['apiUrl'], 'https://docs.example.org/ui/?a=1&b=2')
+
+    def test_navigation_rejects_internal_and_unsafe_urls(self):
+        for url in ['http://fuseki:3030/$', 'http://fuseki.default.svc.cluster.local/',
+                    'http://127.0.0.1/', 'http://10.0.0.1/', 'https://user:password@example.org/',
+                    'javascript:alert(1)', 'https://private.internal/']:
+            render({'skosmos': {'navigation': {'apiUrl': url}}}, fail='must be a public HTTP(S) URL')
+
     def test_default_topology(self):
         docs = render()
         self.assertFalse(any(d['kind'] in ['Job', 'Ingress'] for d in docs))
@@ -68,8 +102,8 @@ class Rendering(unittest.TestCase):
         self.assertEqual(profile['skosmos']['version'], '3.3')
         self.assertEqual(profile['skosmos']['upstreamTag'], 'v3.3')
         self.assertEqual(profile['imageRevision'], 'r1')
-        self.assertEqual(profile['skosmos']['imageRevision'], 'r7')
-        self.assertEqual(f"ghcr.io/acdh-oeaw/vocabs-skosmos:{profile['skosmos']['version']}-{profile['skosmos']['imageRevision']}", 'ghcr.io/acdh-oeaw/vocabs-skosmos:3.3-r7')
+        self.assertEqual(profile['skosmos']['imageRevision'], 'r8')
+        self.assertEqual(f"ghcr.io/acdh-oeaw/vocabs-skosmos:{profile['skosmos']['version']}-{profile['skosmos']['imageRevision']}", 'ghcr.io/acdh-oeaw/vocabs-skosmos:3.3-r8')
 
     def test_example_and_swagger_ingress(self):
         v = yaml.safe_load(Path('environments/example.yaml').read_text())

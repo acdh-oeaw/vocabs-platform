@@ -1,0 +1,25 @@
+<li class="nav-item">
+  <a id="acdh-nav-editor"
+     class="fs-6 ms-3 text-decoration-none"
+     href="{{ 'about' | global_url(request.lang, request.contentLang, null) }}#editor">Editor</a>
+</li>
+
+<li class="nav-item">
+  <a id="acdh-nav-api"
+     class="fs-6 ms-3 text-decoration-none"
+     href="{{ 'about' | global_url(request.lang, request.contentLang, null) }}#api">API</a>
+</li>
+
+<li class="nav-item acdh-nav-help">
+  <details>
+    <summary>{{ 'Help' | trans }}</summary>
+    <div class="acdh-help-content">
+      <p>{{ 'helper_help' | trans }}</p>
+      <p>{{ 'search_example_text' | trans }}</p>
+    </div>
+  </details>
+</li>
+
+<li class="nav-item acdh-interface-language">
+  <span>{{ 'Interface language' | trans }}: <span lang="{{ request.lang }}">{{ request.lang | lang_name(request.lang) }}</span></span>
+</li>

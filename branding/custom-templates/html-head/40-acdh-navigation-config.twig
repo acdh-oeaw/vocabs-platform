@@ -1,0 +1,21 @@
+{# Public navigation data is mounted by Helm, independently of config.ttl. #}
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const response = await fetch(new URL('resource/acdh-navigation.json', document.baseURI), { cache: 'no-store' });
+    if (!response.ok) return;
+    const config = await response.json();
+    for (const [name, value] of Object.entries({ editor: config.editorUrl, api: config.apiUrl })) {
+      if (!value) continue;
+      const url = new URL(value);
+      if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password) continue;
+      document.querySelectorAll(`[data-acdh-${name}]`).forEach(link => {
+        link.href = url.href;
+        link.hidden = false;
+      });
+    }
+  } catch {
+    // Keep the native Editor anchor; omit unavailable external links.
+  }
+});
+</script>

@@ -504,3 +504,53 @@ footer {
     flex: 1;
   }
 }
+
+/* Feedback remains a native route, but is not a primary production menu item. */
+#topbar-nav > .nav-item:has(> #navi3) {
+  display: none;
+}
+
+#topbar-nav > [hidden] {
+  display: none;
+}
+
+#topbar-nav > .acdh-nav-help {
+  margin-inline-start: auto;
+  padding-inline-start: 1rem;
+}
+
+#topbar-nav > .acdh-interface-language {
+  border-inline-start: 1px solid var(--acdh-border);
+  padding-inline-start: .75rem;
+}
+
+#topbar-nav > .language {
+  margin-inline-start: 0;
+}
+
+.acdh-nav-help details {
+  position: relative;
+}
+
+.acdh-nav-help summary {
+  cursor: pointer;
+}
+
+.acdh-help-content {
+  position: absolute;
+  z-index: 1050;
+  inset-inline-end: 0;
+  width: min(24rem, 85vw);
+  padding: 1rem;
+  background: var(--acdh-surface);
+  color: var(--acdh-text);
+  border: 1px solid var(--acdh-border);
+  box-shadow: 0 .25rem .5rem var(--acdh-border);
+}
+
+@media (max-width: 767.98px) {
+  .acdh-help-content {
+    position: static;
+    width: 100%;
+  }
+}
