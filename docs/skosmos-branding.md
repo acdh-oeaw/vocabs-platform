@@ -274,3 +274,37 @@ width and footer alignment. Check both empty and populated vocabulary listings
 without inventing data. These remain deployment checks, not claimed browser
 results. This structural pass targets Skosmos `3.3-r6` and chart
 `0.2.0-dev.10`; shared Fuseki/Jena revisions and appVersion stay unchanged.
+
+## Full-width landing and native search (r7)
+
+The `landing-top` hero now uses the exact paragraph from legacy
+`view/fundament_header_hero.twig`. Both landing and About use full-width ancestor
+containers and a bounded `.acdh-hero-inner`; no `100vw` breakout, negative viewport
+margins or global overflow clipping is needed. The available page width excludes
+scrollbars. About retains the native heading above the hero and bounded body
+sections; Feedback is unchanged. Landing vocabulary content has its own 104rem
+maximum with responsive gutters instead of inheriting the 72rem header/footer.
+
+Skosmos v3.3 places `#global-search-bar` in the header, outside landing slots.
+`html-head/30-acdh-landing-search.twig` moves that existing node into
+`#acdh-landing-search` after DOMContentLoaded on landing only. It keeps all IDs,
+labels and mounted Vue state, removes collapse behavior from the permanently
+visible bar, and hides/disconnects the redundant toggle with expanded ARIA state.
+The operation is idempotent, introduces no focus calls, and leaves non-landing
+behavior unchanged. Upstream `global-search.js` mounts on translation readiness
+by the unchanged `#global-search-wrapper` ID: relocation works whether mounting
+finishes before or after DOMContentLoaded. We never mount or clone a component.
+Native selectors/input/button stack on narrow landing viewports.
+
+Tests cover same-node relocation, repeated execution, ARIA state, inner-page
+behavior, source-copy markers, IDs, palette, focus and packaged extension paths.
+Temporary Chromium fixtures additionally use upstream Bootstrap/Skosmos CSS and
+the actual Vue search component at 320, 768, 1440, 2560 and 720 CSS px (the last
+models the layout viewport of a 1440px display at 200% zoom). They check landing
+and About edge-to-edge heroes and no horizontal overflow, native search mounting,
+a working language dropdown, and retained collapsed search on non-landing pages.
+These fixtures are not a deployed Skosmos backend or real-browser zoom acceptance.
+Rancher QA still needs actual search results, language/vocabulary selection,
+empty/populated data, keyboard navigation and 200% browser zoom across landing,
+About, Feedback and vocabulary pages. Palette, header identity branching and
+footer composition are unchanged; no cluster deployment is performed.

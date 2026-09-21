@@ -1,0 +1,18 @@
+{# Move the native node only; translation-ready Vue mounting keeps the same ID. #}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  if (!document.body.classList.contains('frontpage-logo')) return;
+  const target = document.getElementById('acdh-landing-search');
+  const bar = document.getElementById('global-search-bar');
+  const toggle = document.getElementById('global-search-toggle');
+  if (!target || !bar || !toggle) return;
+
+  if (bar.parentElement !== target) target.appendChild(bar);
+  bar.classList.remove('collapse', 'collapsing');
+  bar.classList.add('show');
+  toggle.setAttribute('aria-expanded', 'true');
+  toggle.removeAttribute('data-bs-toggle');
+  toggle.removeAttribute('data-bs-target');
+  toggle.hidden = true;
+});
+</script>

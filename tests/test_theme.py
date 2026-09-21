@@ -37,7 +37,7 @@ class SkosmosTheme(unittest.TestCase):
 
     def test_templates_use_v3_slots_and_no_skosmos2_pages(self):
         templates = sorted((BRANDING / "custom-templates").rglob("*.twig"))
-        self.assertEqual(len(templates), 9)
+        self.assertEqual(len(templates), 10)
         for template in templates:
             self.assertNotIn('{% extends "light.twig" %}', template.read_text())
         self.assertEqual(
@@ -55,7 +55,7 @@ class SkosmosTheme(unittest.TestCase):
         self.assertNotRegex(logo, r"display:\s*none|visibility:\s*hidden")
         # Only Bootstrap spacing/type utilities need priority overrides.
         for prop in re.findall(r"([\w-]+)\s*:[^;{}]+!important", css):
-            self.assertIn(prop, {"padding-block", "padding", "margin-bottom", "margin-inline-start", "font-size", "display"})
+            self.assertIn(prop, {"padding-block", "padding", "margin-bottom", "margin-inline-start", "margin-top", "padding-inline", "font-size", "display"})
 
     def test_both_upstream_logo_variants_are_rebranded(self):
         css = (BRANDING / "css/acdh-vocabs.css").read_text()
@@ -142,6 +142,19 @@ class SkosmosTheme(unittest.TestCase):
         self.assertIn("max-width: var(--acdh-content-width)", css)
         self.assertIn("var(--acdh-hero-overlay)", css)
         self.assertIn("var(--acdh-on-hero)", css)
+
+    def test_full_width_search_contract(self):
+        slots = BRANDING / "custom-templates"
+        hero = (slots / "landing-top/10-acdh-hero.twig").read_text()
+        self.assertIn("In many areas of scholarly work, controlled vocabularies", hero)
+        self.assertIn("publication of vocabularies and taxonomies of any kind.", hero)
+        self.assertIn('id="acdh-landing-search"', hero)
+        for template in slots.rglob("*.twig"):
+            self.assertNotRegex(template.read_text(), r'id="global-search-(?:bar|wrapper)"')
+        css = (BRANDING / "css/acdh-vocabs.css").read_text()
+        self.assertNotRegex(css, r"(?:width|margin-inline):[^;]*100vw")
+        self.assertNotRegex(css, r"overflow-x:\s*(?:hidden|clip)")
+        subprocess.run(["node", str(ROOT / "tests/theme_landing_search.mjs")], check=True)
 
     def test_navigation_behavior(self):
         subprocess.run(["node", str(ROOT / "tests/theme_navigation.mjs")], check=True)
