@@ -6,16 +6,18 @@ JenaText and real ACDH vocabularies before routing production traffic. The MIT
 license is preserved. No production infrastructure or credentials are included.
 
 ```text
-Internet → Ingress → Anubis → nginx-unprivileged → Skosmos → Varnish → Fuseki
+Internet → Ingress → Anubis → nginx-unprivileged → Skosmos → Vinyl Cache → Fuseki
                                                                (one JVM)
                                                                   ↓
                                                         active revision PVC
 Shared RDF source PVC → explicit offline import Job → separate candidate PVC
 ```
 
-Varnish uses the [official Varnish Cache chart](https://github.com/varnish/helm-varnish/tree/main/varnish-cache),
-pinned to 0.1.3 in Chart.yaml and Chart.lock. Fuseki and Varnish are ClusterIP only;
-only the gateway receives the application ingress. Separate Swagger ingress
+Vinyl Cache is managed directly by the parent chart as an internal ClusterIP
+Deployment and Service. Its image and compatibility version are resolved by the
+stack profile; cache invalidation is tied to the active data revision. Fuseki and
+Vinyl Cache are ClusterIP only; only the gateway receives the application
+ingress. Separate Swagger ingress
 requires an explicit Anubis-bypass acknowledgement. NetworkPolicies default to
 restricting backend ingress. A CNI must enforce them; without enforcement they
 have no effect. This chart does not assume ingress-controller labels or install a CNI.
@@ -92,14 +94,14 @@ helm upgrade --install vocabs ./chart/vocabs \
 
 Each namespace has an independent public URL, config, data revisions, claims and
 resources. The default release produces `vocabs-vocabs-fuseki` and
-`vocabs-varnish` service names. Name overrides require setting
+`vocabs-vocabs-vinyl` service names. Name overrides require setting
 `global.vocabsFusekiHost` to the generated Fuseki name. External Skosmos TTL must
-point to that release's **Varnish** service, not directly to Fuseki.
+point to that release's **Vinyl Cache** service, not directly to Fuseki.
 
 ## Public gateway
 
-The chart owns Ingress → Anubis → localhost nginx-unprivileged → Skosmos → Varnish
-→ Fuseki. It uses one gateway Deployment with two containers; only Anubis is
+The chart owns Ingress → Anubis → localhost nginx-unprivileged → Skosmos → Vinyl Cache → Fuseki.
+It uses one gateway Deployment with two containers; only Anubis is
 exposed by the Gateway Service. No Anubis Operator, CRDs, Redis or Valkey is
 installed. Anubis handles request filtering; Nginx handles concept URI/DARIAH
 redirects, CORS, routing and proxy headers. TLS stays at Ingress.
@@ -143,7 +145,7 @@ and rejects conflicts. Update
 
 Update RDF by importing into a new candidate PVC while the active service runs.
 Validate the candidate, stop public traffic briefly, activate it through the
-StatefulSet rollout, and invalidate Varnish through its revision annotation.
+StatefulSet rollout, and invalidate Vinyl Cache through its revision annotation.
 Keep the previous PVC for rollback. Follow [the import runbook](docs/imports.md):
 **imports are disabled by default and are never Helm hooks**. Use an explicitly
 rendered Job with `kubectl create` so later Helm upgrades cannot recreate it.
@@ -206,7 +208,7 @@ do not protect secrets already tracked by Git.
 The chart publishes to `https://acdh-oeaw.github.io/vocabs-platform/` after the
 one-time GitHub Pages setup. See [Helm publishing and Rancher installation](docs/rancher.md)
 for release versioning, GitHub settings, repository registration and development
-pilot values. Chart packages include the pinned Varnish dependency.
+pilot values. Vinyl Cache is managed directly by the parent chart.
 
 Navigation destinations and environment-aware Swagger links are documented in
 [the navigation guide](docs/navigation.md). Configure external destinations with

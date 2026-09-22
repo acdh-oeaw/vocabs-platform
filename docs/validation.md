@@ -65,3 +65,14 @@ comparison against original production rewrite rules, CSI-backed bbolt restarts,
 key continuity, rollout availability and traffic rollback. CI is authored but
 not executed on GitHub in this session. The container smoke test used a mock
 backend and is not evidence that these production checks pass.
+
+## Vinyl Cache and vocabulary pilot (2026-09-22)
+
+- The stack no longer uses the Varnish Helm dependency. Vinyl Cache 9.1.0 is built from the pinned upstream source tarball and managed directly by the parent chart.
+- `make validate PYTHON=.venv/bin/python` passed: 12 theme tests, 20 Helm tests, 7 loader tests, 10 gateway tests, njs redirect tests, Turtle checks and kubeconform validation of 80/80 resources.
+- A real cumulative-import pilot created a fresh candidate PVC and loaded the selected RDF dump with Jena 5.4.0. Candidate validation confirmed RDF content and JenaText search before activation.
+- The candidate revision was activated with Fuseki and Vinyl Cache rollouts, and Skosmos served the imported vocabulary successfully.
+- Search was verified through the deployed Skosmos application.
+- A revisioned external Skosmos ConfigMap initially omitted `skosmos:customCss`, which reset the ACDH branding to upstream defaults. The configuration was corrected by preserving the accepted environment settings, including `skosmos:customCss`, service name, JenaText settings, languages and template cache.
+- After the corrected ConfigMap rollout, the ACDH design and search both worked as expected.
+- The pilot vocabulary uses canonical concept URIs under `vocabs.sshopencloud.eu`; it therefore validates import, Skosmos and search behavior but is not the final test case for the public concept-URI resolver.

@@ -20,6 +20,13 @@ plugin is currently enabled: the migrated behavior is static content and
 styling, with a small navigation repair script in the `html-head` slot. No
 plugin registration or full-page override is needed.
 
+When creating a revisioned external Skosmos ConfigMap for an existing
+environment, preserve the accepted environment configuration instead of
+rebuilding it from an incomplete base fragment. In particular,
+`skosmos:customCss` must remain present or Skosmos falls back to its upstream
+default styling. Preserve the service name, SPARQL settings, languages, plugins
+and template-cache settings at the same time.
+
 ## Migration matrix
 
 | Legacy component | Legacy file | Purpose | Skosmos 2 mechanism | Skosmos 3.3 equivalent | Migration strategy | Requires plugin? | Risk/compatibility note |

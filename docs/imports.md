@@ -45,11 +45,25 @@ for each data revision.
    or staging release against the candidate. Only one JVM may mount/open it at
    any time. Stop that validation workload before activation. See the acceptance
    checklist in `tests/integration/README.md`.
+
+   If the new vocabulary also requires a Skosmos configuration change, prepare
+   and validate a new revisioned external ConfigMap before activation. For an
+   existing environment, extend the currently accepted configuration rather than
+   rebuilding it from an incomplete base fragment. Preserve settings such as
+   `skosmos:customCss`, service name, SPARQL dialect/endpoint, languages, plugins
+   and template cache. See `config/skosmos/README.md` and
+   `docs/skosmos-branding.md`.
+
 6. Quiesce public traffic at your ingress/maintenance layer. Confirm the importer
    and any candidate validator have terminated, then change `data.activeClaim`,
    `data.revision` and `vinyl.podAnnotations` together; the latter's
    `vocabs.acdh.oeaw.ac.at/data-revision` must be `<claim>/<revision>`. See
    `chart/vocabs/examples/activate-r002.yaml`. Keep imports disabled.
+
+   When the candidate introduces a new vocabulary configuration, switch to the
+   validated revisioned Skosmos ConfigMap in the same activation values. Verify
+   before cutover that it still contains `skosmos:customCss` and the other
+   environment-specific settings documented in `config/skosmos/README.md`.
 7. Upgrade and wait for Fuseki's StatefulSet and Vinyl Cache's Deployment rollouts.
    Old Fuseki exits normally before its successor mounts the new claim. Never
    force-delete a stuck pod or remove lock files: investigate first. Test queries

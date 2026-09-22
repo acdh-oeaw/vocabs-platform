@@ -1,15 +1,17 @@
 # Upstream verification record
 
-Inspected on 2026-09-17. Source verification does not imply production acceptance.
+Inspected on 2026-09-17; Vinyl Cache verification refreshed on 2026-09-22. Source verification does not imply production acceptance.
 
-- Official Varnish repository links its chart project: https://github.com/varnish/varnish
-- Chart source: https://github.com/varnish/helm-varnish/tree/c0e504d3f41c858715de314a75dbff830a709439/varnish-cache
-  Inspected Chart.yaml, values.yaml, metadata/pod helpers, VCL templating and service
-  defaults. Verified public OCI `varnish/varnish-cache:0.1.3` with `helm show chart`
-  and dependency build. Published manifest digest:
-  `sha256:408ec23f315f0f050559ec1fe5a5a3d86bfe18acf2f21c712debcb8ff0ac5bb6`.
-  Upstream NodePort default is explicitly overridden to ClusterIP. Upstream chart
-  appVersion is 9.0.0. The actual downloaded chart archive was inspected too.
+- Vinyl Cache upstream: https://vinyl-cache.org/ . The former Varnish Cache FOSS
+  project is now Vinyl Cache; version **9.1.0** was released on 2026-09-16.
+  The ACDH runtime is built directly from the official source tarball
+  `https://vinyl-cache.org/downloads/vinyl-cache-9.1.0.tgz`, not from a Helm
+  dependency chart. `chart/vocabs/compatibility.yaml` pins source SHA256
+  `3840a06dd0cd212fd1e3beeb8b086dbd7c35ca31cfe1962fe2586363a63410aa`.
+  `images/vinyl/Dockerfile` verifies that checksum before building, installs
+  Vinyl under `/usr/local`, and uses `/usr/local/sbin/vinyld` as the runtime
+  entrypoint. The parent Helm chart manages the internal ClusterIP Deployment,
+  Service and VCL ConfigMap directly.
 - Skosmos source revision: https://github.com/NatLibFi/Skosmos/tree/44eb8756ffcacf84a625dc974c42d8df70dacfc1
   (`v3.3`). Inspected dockerfiles/Dockerfile.ubuntu, docker-compose.yml,
   config.ttl.dist, dockerfiles/config/config-docker-compose.ttl and skosmos.ttl.

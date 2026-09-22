@@ -4,6 +4,7 @@
 @prefix cfg: <urn:acdh:vocabs:config:> .
 cfg:config a skosmos:Configuration ;
   skosmos:serviceName "ACDH Vocabs" ;
+  skosmos:customCss "resource/css/acdh/acdh-vocabs.css" ;
   # Replace the service name if the release is not 'vocabs'.
   skosmos:sparqlEndpoint <http://vocabs-vocabs-vinyl:80/skosmos/sparql> ;
   skosmos:sparqlDialect "JenaText" ;
