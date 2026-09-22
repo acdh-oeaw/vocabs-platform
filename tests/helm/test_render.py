@@ -260,15 +260,22 @@ class Rendering(unittest.TestCase):
         base['gateway']['anubis']['signingKey']['secret'] = {'create': True, 'existingSecret': 'conflict', 'name': 'managed'}
         render(base, fail='gateway.anubis.signingKey.secret.existingSecret must be empty')
     def test_candidate_import(self):
-        docs = render(candidate()); job = find(docs, 'Job')
+        v = candidate()
+        v['imports']['source']['pvc']['files'] = ['/data/vocab-a.ttl', '/data/vocab-b.ttl']
+        docs = render(v); job = find(docs, 'Job')
         pod = job['spec']['template']['spec']
         self.assertEqual(pod['restartPolicy'], 'Never')
         self.assertEqual(pod['volumes'][0]['persistentVolumeClaim']['claimName'], 'candidate')
         self.assertEqual(pod['volumes'][1]['persistentVolumeClaim']['claimName'], 'source')
         self.assertTrue(pod['volumes'][1]['persistentVolumeClaim']['readOnly'])
+        self.assertEqual(
+            pod['containers'][0]['args'],
+            ['/fuseki/databases/db', '/data/vocab-a.ttl', '/data/vocab-b.ttl']
+        )
         self.assertNotIn('helm.sh/hook', job['metadata'].get('annotations') or {})
         runtime=find(docs,'StatefulSet')['spec']['template']['spec']['containers'][0]['image']
-        self.assertEqual(runtime.split(':')[-1], pod['containers'][0]['image'].split(':')[-1])
+        self.assertTrue(runtime.endswith(':5.4.0-r1'))
+        self.assertTrue(pod['containers'][0]['image'].endswith(':5.4.0-r2'))
     def test_rejections(self):
         cases = [
           ({'stack':{'version':'unknown'}},'Unknown stack profile'),
@@ -291,8 +298,14 @@ class Rendering(unittest.TestCase):
         v=candidate(); v['compatibility']={'allowUnsupported':True,'overrides':{'jenaVersion':'5.5.0','storageEngine':'TDB2'}}
         docs=render(v)
         self.assertIn('tdb2:DatasetTDB2',find(docs,'ConfigMap','fuseki-config')['data']['assembler.ttl'])
-        for kind in ['StatefulSet','Job']:
-            self.assertIn(':5.5.0-r1',find(docs,kind)['spec']['template']['spec']['containers'][0]['image'])
+        self.assertIn(
+            ':5.5.0-r1',
+            find(docs,'StatefulSet')['spec']['template']['spec']['containers'][0]['image']
+        )
+        self.assertIn(
+            ':5.5.0-r2',
+            find(docs,'Job')['spec']['template']['spec']['containers'][0]['image']
+        )
     def test_activation_and_namespaces(self):
         old=render(); v=yaml.safe_load(Path('chart/vocabs/examples/activate-r002.yaml').read_text()); new=render(v)
         def revision(docs):return find(docs,'Deployment','vinyl')['spec']['template']['metadata']['annotations']['vocabs.acdh.oeaw.ac.at/data-revision']

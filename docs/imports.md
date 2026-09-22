@@ -9,8 +9,13 @@ for each data revision.
 
 1. Add a candidate to `data.managedClaims`, preserving existing entries, and run
    a normal Helm upgrade with `imports.job.enabled: false`. Or provision it
-   separately. Ensure the immutable RDF source dump is available on the source
-   PVC. Do not expose an empty initial database publicly before first acceptance.
+   separately. Ensure all immutable RDF source dumps for the candidate revision
+   are available on the source PVC. Each migration is cumulative: keep the
+   previously accepted dump files in `imports.source.pvc.files` and append the
+   new vocabulary dump. The candidate database is rebuilt from that complete list;
+   do not import only the newest dump into a fresh candidate, because activating
+   it would drop previously migrated vocabularies. Do not expose an empty initial
+   database publicly before first acceptance.
 2. Configure the same environment and overlay an explicit candidate Job. Prefer
    generating only that resource, then creating it outside Helm:
 
@@ -25,8 +30,9 @@ for each data revision.
 
    `--show-only` still validates the chart. Use the SAME release name and values
    as the live release, not a separate Helm release with stale activeClaim.
-3. Follow logs and Job status. `load.sh destination RDF-file` checks arguments,
-   versions, tools and fresh paths, runs `riot --validate`, loads with TDB1
+3. Follow logs and Job status. `load.sh destination RDF-file [RDF-file ...]`
+   checks arguments, versions, tools and fresh paths, validates every source with
+   `riot --validate`, then loads all configured RDF files together with TDB1
    `tdbloader` or TDB2 `tdb2.tdbloader`, then builds JenaText. Disabling syntax
    validation or indexing requires an explicit value. Do not activate an unindexed
    candidate when Skosmos uses JenaText.

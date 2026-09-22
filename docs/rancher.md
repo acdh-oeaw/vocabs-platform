@@ -142,7 +142,8 @@ imports:
     type: pvc
     pvc:
       existingClaim: vocabs-import
-      file: /data/example.ttl
+      files:
+        - /data/example.ttl
 ```
 
 Provision the separate shared RDF source PVC `vocabs-import` in namespace

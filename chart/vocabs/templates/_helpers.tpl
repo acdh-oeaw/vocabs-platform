@@ -55,6 +55,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- $v := $p.jena.version -}}
 {{- $revision := $p.imageRevision -}}
 {{- if eq .component "skosmos" }}{{ $v = $p.skosmos.version }}{{ $revision = default $p.imageRevision $p.skosmos.imageRevision }}{{ end -}}
+{{- if eq .component "imports" }}{{ $v = $p.importer.jenaVersion }}{{ $revision = default $p.imageRevision $p.importer.imageRevision }}{{ end -}}
 {{- $tag := default (printf "%s-%s" $v $revision) .image.tag -}}
 {{- if not (regexMatch "^[0-9]+[.][0-9]+.*" $tag) }}{{ fail "Image tags must start with an explicit version" }}{{ end -}}
 {{- printf "%s:%s" .image.repository $tag -}}

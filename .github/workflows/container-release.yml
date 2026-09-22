@@ -47,6 +47,7 @@ jobs:
           jena_version = profile['jena']['version']
           revision = profile['imageRevision']
           skosmos_revision = profile['skosmos'].get('imageRevision', revision)
+          importer_revision = profile['importer'].get('imageRevision', revision)
           matrix = [
               {
                   'component': 'skosmos',
@@ -67,7 +68,7 @@ jobs:
               {
                 'component': 'jena-tools',
                 'file': 'images/jena-tools/Dockerfile',
-                'tag': f"ghcr.io/acdh-oeaw/vocabs-jena-tools:{jena_version}-{revision}",
+                'tag': f"ghcr.io/acdh-oeaw/vocabs-jena-tools:{jena_version}-{importer_revision}",
                 'build_args': '\n'.join([
                   f'JAVA_BASE_IMAGE={java_base}',
                   f'JENA_VERSION={jena_version}',

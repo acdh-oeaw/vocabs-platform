@@ -177,7 +177,8 @@ imports:
     type: pvc
     pvc:
       existingClaim: ""
-      file: /data/example.ttl
+      files:
+        - /data/example.ttl
   validateRdf: true
   buildTextIndex: true
   java: {xms: 1g, xmx: 4g}

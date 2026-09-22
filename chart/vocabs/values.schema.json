@@ -791,9 +791,14 @@
                 "existingClaim": {
                   "type": "string"
                 },
-                "file": {
-                  "type": "string",
-                  "pattern": "^/data/.+"
+                "files": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^/data/.+"
+                  }
                 }
               },
               "additionalProperties": false

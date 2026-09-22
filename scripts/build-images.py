@@ -31,6 +31,8 @@ for component, image in [
     else:
         v = s['jena']['version']
         revision = s['imageRevision']
+        if component == 'jena-tools':
+            revision = s['importer'].get('imageRevision', revision)
         tag = f'{a.registry}/{image}:{v}-{revision}'
 
     args = ['docker', 'build', '-f', f'images/{component}/Dockerfile', '-t', tag]

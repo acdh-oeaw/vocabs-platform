@@ -21,6 +21,15 @@ class Loader(unittest.TestCase):
         self.assertEqual(self.run_load(self.dest,self.source).returncode,0)
         self.assertEqual([s.split()[0] for s in self.log.read_text().splitlines()],['riot','tdbloader'])
         self.assertNotEqual(self.run_load(self.dest,self.source).returncode,0)
+    def test_multiple_sources(self):
+        source2=self.root/'dump2.ttl'
+        source2.write_text('')
+        self.assertEqual(self.run_load(self.dest,self.source,source2).returncode,0)
+        calls=self.log.read_text().splitlines()
+        self.assertEqual([line.split()[0] for line in calls], ['riot','riot','tdbloader'])
+        self.assertIn(str(self.source), calls[-1])
+        self.assertIn(str(source2), calls[-1])
+
     def test_validation_failure(self):
         self.env['RIOT_EXIT']='23'
         self.assertEqual(self.run_load(self.dest,self.source).returncode,23)

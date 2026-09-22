@@ -29,7 +29,11 @@ spec:
         - name: import
           image: {{ include "vocabs.image" (dict "root" . "component" "imports" "image" .Values.imports.image) | quote }}
           imagePullPolicy: {{ .Values.imports.image.pullPolicy }}
-          args: [{{ printf "%s/db" .Values.fuseki.persistence.mountPath | quote }}, {{ .Values.imports.source.pvc.file | quote }}]
+          args:
+            - {{ printf "%s/db" .Values.fuseki.persistence.mountPath | quote }}
+            {{- range .Values.imports.source.pvc.files }}
+            - {{ . | quote }}
+            {{- end }}
           env:
             - {name: STORAGE_ENGINE, value: {{ $p.storage.engine | quote }}}
             - {name: EXPECTED_JENA_VERSION, value: {{ $p.jena.version | quote }}}

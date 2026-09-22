@@ -18,6 +18,7 @@ profiles:
       engine: JenaText
     importer:
       jenaVersion: "5.4.0"
+      imageRevision: "r2"
     vinyl:
       version: "9.1.0"
       sha256: "3840a06dd0cd212fd1e3beeb8b086dbd7c35ca31cfe1962fe2586363a63410aa"

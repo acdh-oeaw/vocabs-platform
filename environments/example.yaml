@@ -41,7 +41,10 @@ imports:
   targetClaim: vocabs-data-r002
   source:
     type: pvc
-    pvc: {existingClaim: vocabs-import, file: /data/example.rdf}
+    pvc:
+      existingClaim: vocabs-import
+      files:
+        - /data/example.rdf
   java: {xms: 4g, xmx: 20g}
   resources:
     requests: {cpu: "4", memory: 18Gi}

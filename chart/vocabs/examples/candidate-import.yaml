@@ -3,4 +3,7 @@ imports:
   job: {enabled: true, name: candidate-r002, backoffLimit: 0}
   targetClaim: vocabs-data-r002
   source:
-    pvc: {existingClaim: vocabs-import, file: /data/example.ttl}
+    pvc:
+      existingClaim: vocabs-import
+      files:
+        - /data/example.ttl

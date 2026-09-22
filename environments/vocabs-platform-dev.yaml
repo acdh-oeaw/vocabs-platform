@@ -72,7 +72,8 @@ imports:
     type: pvc
     pvc:
       existingClaim: vocabs-import
-      file: /data/example.rdf
+      files:
+        - /data/example.rdf
 ingress:
   enabled: true
   className: nginx
