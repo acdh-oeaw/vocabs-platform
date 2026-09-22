@@ -74,14 +74,14 @@ def main():
                 time.sleep(0.25)
             else:raise RuntimeError('Anubis failed readiness')
             podman('exec',nginx_name,'wget','-q','-O','/dev/null','http://127.0.0.1:8081/healthz')
-            for path in ['/archecategory/example','/iso6393/deu','/archecategory/a%2Fb?x=1&y=2']:
+            for path in ['/concept-a/example','/concept-b/deu','/concept-a/a%2Fb?x=1&y=2']:
                 status,headers,_=request('GET',path)
                 from urllib.parse import urlsplit,parse_qs
                 assert status==302,(status,headers)
                 target=urlsplit(headers['Location'])
                 assert target.path=='/entity'
                 assert parse_qs(target.query)['uri']==['https://vocabs.example.org'+path]
-            for prefix in ['tadirah','invocation-type','bbt']:
+            for prefix in ['external-vocab','other-vocab','third-vocab']:
                 for suffix in ['', '/foo', '/a%2Fb?x=1']:
                     status,headers,_=request('GET','/'+prefix+suffix)
                     assert status==301,(status,headers)
@@ -93,7 +93,7 @@ def main():
                 for key,value in {'Host':'vocabs.example.org','X-Forwarded-Host':'vocabs.example.org','X-Forwarded-Proto':'https','X-Real-IP':'198.51.100.10','X-Forwarded-For':'198.51.100.10'}.items():
                     assert upstream[key]==value,(key,upstream)
             assert request('GET','/rest/v1/vocabularies',{'User-Agent':'Mozilla/5.0','Accept':'text/html'})[0]==200
-            for path in ['/rest/v1/vocabularies','/archecategory/example']:
+            for path in ['/rest/v1/vocabularies','/concept-a/example']:
                 status,headers,_=request('OPTIONS',path)
                 assert status==204,(status,headers)
                 assert headers['Access-Control-Allow-Methods']=='POST, GET, OPTIONS, DELETE, PUT'

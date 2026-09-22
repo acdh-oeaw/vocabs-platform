@@ -16,5 +16,5 @@ trap 'rm -rf "$work"' EXIT
 helm template vocabs ./chart/vocabs > "$work/default.yaml"
 helm template vocabs ./chart/vocabs -f environments/example.yaml > "$work/example.yaml"
 helm template vocabs ./chart/vocabs -f environments/example.yaml -f chart/vocabs/examples/candidate-import.yaml > "$work/import.yaml"
-helm template vocabs ./chart/vocabs --set swagger.enabled=true --set swagger.specUrl=https://vocabs.example.org/swagger.json --set swagger.ingress.enabled=true --set swagger.ingress.host=api.example.org --set swagger.ingress.allowAnubisBypass=true > "$work/swagger.yaml"
+helm template vocabs ./chart/vocabs --set swagger.enabled=true --set swagger.specUrl=https://vocabs.example.org/swagger.json --set swagger.ingress.enabled=true --set swagger.ingress.redmineId=92001 --set swagger.ingress.host=api.example.org --set swagger.ingress.allowAnubisBypass=true > "$work/swagger.yaml"
 kubeconform -strict -summary -kubernetes-version 1.31.0 "$work/"*.yaml

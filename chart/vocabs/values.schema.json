@@ -390,6 +390,18 @@
             "enabled": {
               "type": "boolean"
             },
+            "redmineId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^$|^[1-9][0-9]*$"
+                },
+                {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              ]
+            },
             "host": {
               "type": "string"
             },
@@ -898,6 +910,18 @@
             "enabled": {
               "type": "boolean"
             },
+            "redmineId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^$|^[1-9][0-9]*$"
+                },
+                {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              ]
+            },
             "className": {
               "type": "string"
             },
@@ -937,6 +961,18 @@
       "properties": {
         "enabled": {
           "type": "boolean"
+        },
+        "redmineId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^$|^[1-9][0-9]*$"
+            },
+            {
+              "type": "integer",
+              "minimum": 1
+            }
+          ]
         },
         "className": {
           "type": "string"

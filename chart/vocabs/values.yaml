@@ -284,32 +284,8 @@ gateway:
   conceptResolver:
     enabled: true
     redirectStatus: 302
-    namespaces:
-      - dhataxonomy
-      - traveldigital
-      - hsinstruments
-      - archeaccessrestrictions
-      - archecategory
-      - archelifecyclestatus
-      - defcthesaurus
-      - iadthesaurus
-      - iso6391
-      - oefosdisciplines
-      - iso6393
-      - vicavdialects
-      - archeoaisets
-      - archelicenses
-      - date
-      - unit_of_time
-      - oeai-cultural-periods
-      - legalkraus
-      - indigo
-      - graphis-imgreg
-      - oeai-materials
-  externalRedirects:
-    - {prefix: tadirah, targetBaseUrl: "https://vocabs.dariah.eu/tadirah", status: 301}
-    - {prefix: invocation-type, targetBaseUrl: "https://vocabs.dariah.eu/invocation-type", status: 301}
-    - {prefix: bbt, targetBaseUrl: "https://vocabs.dariah.eu/bbt", status: 301}
+    namespaces: []
+  externalRedirects: []
   cors:
     enabled: true
     allowOrigin: "" # No new origin policy by default; set '*' or an explicit origin after review.

@@ -6,6 +6,7 @@ metadata:
   name: {{ include "vocabs.fullname" . }}-fuseki-admin
   labels:
     {{- include "vocabs.labels" . | nindent 4 }}
+    ID: {{ required "Redmine ID is required when Fuseki Ingress is enabled" $i.redmineId | quote }}
   annotations:
     {{- toYaml $i.annotations | nindent 4 }}
 spec:

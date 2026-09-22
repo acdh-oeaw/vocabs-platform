@@ -7,6 +7,7 @@ metadata:
   name: {{ include "vocabs.fullname" . }}-vocabsapi
   labels:
     {{- include "vocabs.labels" . | nindent 4 }}
+    ID: {{ required "Redmine ID is required when Swagger Ingress is enabled" $i.redmineId | quote }}
   annotations:
     {{- toYaml $i.annotations | nindent 4 }}
 spec:

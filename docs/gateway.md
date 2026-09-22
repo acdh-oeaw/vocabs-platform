@@ -92,9 +92,12 @@ and can be validated as combined Turtle with `--config config.ttl`.
 
 ## URI redirects
 
-`gateway.conceptResolver.namespaces` holds the 21 supplied concept namespaces.
-One generated location expression matches a namespace followed by a nonempty
-identifier; a bare vocabulary namespace still reaches Skosmos. njs redirects to
+`gateway.conceptResolver.namespaces` is empty by default. Concept namespaces are
+enabled explicitly as vocabularies are migrated and verified, so a production
+migration can add them one by one without exposing unresolved concept paths.
+When at least one namespace is configured, one generated location expression
+matches a namespace followed by a nonempty identifier; a bare vocabulary
+namespace still reaches Skosmos. njs redirects to
 `<publicUrl>entity?uri=<encoded-original-public-URI>` with status 302 by default.
 The URI is constructed from the canonical URL and the **raw request URI**, then
 encoded as one query value. Existing percent escapes, Unicode and query delimiters
@@ -108,10 +111,12 @@ small JavaScript helper is needed because native Nginx rewrite variables do not
 provide general URL encoding. `tests/gateway/redirects.mjs` exercises the shipped
 code, including percent-encoded slashes, spaces, Unicode and query delimiters.
 
-`gateway.externalRedirects` generates bounded-prefix locations for tadirah,
-invocation-type and bbt. Each uses its declared target/status and preserves the
-raw suffix, trailing slash and query string. `/tadirahfoo` is not a match. A
-percent-encoded spelling of an external prefix is rejected rather than guessed.
+`gateway.externalRedirects` is empty by default. External redirects are added
+explicitly during migration when a vocabulary is intentionally hosted elsewhere.
+Each configured redirect generates a bounded-prefix location, uses its declared
+target/status and preserves the raw suffix, trailing slash and query string.
+A path that only starts with a configured prefix is not treated as a match.
+Percent-encoded spellings of redirect prefixes are rejected rather than guessed.
 Schema restrictions prevent regex/config injection and duplicate or conflicting
 redirect prefixes fail rendering.
 

@@ -25,8 +25,8 @@ Before the first Kubernetes pilot, test the real chain and compare to the old
 Nginx/Anubis deployment:
 
 - GET `/` and representative Skosmos browser pages, including challenge solving.
-- GET `/archecategory/<test-id>` and `/iso6393/<test-id>` through `/entity`.
-- GET `/tadirah/<test-path>` and the other external redirects with suffixes/query strings.
+- GET configured concept namespace paths through `/entity`.
+- GET configured external redirect prefixes with suffixes/query strings.
 - Skosmos REST API from existing automated clients, including Mozilla-like agents.
 - Accept `text/turtle`, `application/rdf+xml`, and `application/ld+json` where supported.
 - CORS OPTIONS requests and real cross-origin browser requests with the intended origin.

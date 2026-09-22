@@ -48,7 +48,7 @@ class Rendering(unittest.TestCase):
 
     def test_navigation_swagger_url_and_override(self):
         values = {'swagger': {'enabled': True, 'specUrl': 'https://vocabs.example.org/swagger.json',
-                  'ingress': {'enabled': True, 'allowAnubisBypass': True, 'host': 'api-dev.example.org',
+                  'ingress': {'enabled': True, 'redmineId': '90001', 'allowAnubisBypass': True, 'host': 'api-dev.example.org',
                               'tls': {'enabled': True, 'secretName': 'api-tls'}}}}
         docs = render(values)
         nav = json.loads(find(docs, 'ConfigMap', 'skosmos-navigation')['data']['acdh-navigation.json'])
@@ -107,7 +107,7 @@ class Rendering(unittest.TestCase):
 
     def test_example_and_swagger_ingress(self):
         v = yaml.safe_load(Path('environments/example.yaml').read_text())
-        v['swagger'] = {'enabled':True, 'specUrl':'https://vocabs.example.org/swagger.json', 'ingress':{'enabled':True, 'host':'api.example.org','allowAnubisBypass':True}}
+        v['swagger'] = {'enabled':True, 'specUrl':'https://vocabs.example.org/swagger.json', 'ingress':{'enabled':True, 'redmineId':'90002', 'host':'api.example.org','allowAnubisBypass':True}}
         docs = render(v)
         ingress = [d for d in docs if d['kind']=='Ingress']
         self.assertEqual(len(ingress), 2)
@@ -121,6 +121,9 @@ class Rendering(unittest.TestCase):
 
     def test_development_public_and_private_ingresses(self):
         values = yaml.safe_load(Path('environments/vocabs-platform-dev.yaml').read_text())
+        values['ingress']['redmineId'] = '90003'
+        values['fuseki']['ingress']['redmineId'] = '90004'
+        values['swagger']['ingress']['redmineId'] = '90005'
         docs = render(values, release='vocabs-platform-dev', namespace='vocabs-platform-dev')
         ingresses = {d['metadata']['name']: d for d in docs if d['kind'] == 'Ingress'}
 
@@ -129,6 +132,7 @@ class Rendering(unittest.TestCase):
         self.assertEqual(public['spec']['rules'][0]['host'], 'vocabs-platform-dev.acdh-dev.oeaw.ac.at')
         self.assertEqual(public['spec']['tls'][0]['secretName'], 'vocabs-platform-dev-tls')
         self.assertEqual(public['metadata']['annotations']['cert-manager.io/cluster-issuer'], 'acdh-prod')
+        self.assertEqual(public['metadata']['labels']['ID'], '90003')
         self.assertTrue(public['spec']['rules'][0]['http']['paths'][0]['backend']['service']['name'].endswith('-gateway'))
 
         gateway = find(docs, 'Deployment', 'gateway')
@@ -146,6 +150,7 @@ class Rendering(unittest.TestCase):
         self.assertEqual(fuseki['spec']['rules'][0]['host'], 'jena-vp-dev.acdh-cluster-2.arz.oeaw.ac.at')
         self.assertEqual(fuseki['spec']['tls'][0]['secretName'], 'jena-vp-dev-tls')
         self.assertEqual(fuseki['metadata']['annotations']['cert-manager.io/cluster-issuer'], 'acdh-prod')
+        self.assertEqual(fuseki['metadata']['labels']['ID'], '90004')
         self.assertNotIn('nginx.ingress.kubernetes.io/whitelist-source-range', fuseki['metadata'].get('annotations', {}))
         self.assertEqual(fuseki['spec']['rules'][0]['http']['paths'][0]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-fuseki')
 
@@ -178,6 +183,7 @@ class Rendering(unittest.TestCase):
         self.assertEqual(swagger['spec']['rules'][0]['host'], 'vocabsapi-vp-dev.acdh-dev.oeaw.ac.at')
         self.assertEqual(swagger['spec']['tls'][0]['secretName'], 'vocabsapi-vp-dev-tls')
         self.assertEqual(swagger['metadata']['annotations']['cert-manager.io/cluster-issuer'], 'acdh-prod')
+        self.assertEqual(swagger['metadata']['labels']['ID'], '90005')
         self.assertNotIn('nginx.ingress.kubernetes.io/whitelist-source-range', swagger['metadata'].get('annotations', {}))
         paths = swagger['spec']['rules'][0]['http']['paths']
         self.assertEqual([(path['path'], path['pathType']) for path in paths], [('/swagger.json', 'Exact'), ('/rest/v1', 'Prefix'), ('/', 'Prefix')])
@@ -192,6 +198,33 @@ class Rendering(unittest.TestCase):
         skosmos_container = skosmos['spec']['template']['spec']['containers'][0]
         self.assertEqual(skosmos_container['livenessProbe']['httpGet']['path'], '/swagger.json')
         self.assertEqual(skosmos_container['readinessProbe']['httpGet']['path'], '/en/')
+
+    def test_ingresses_require_redmine_id(self):
+        render({
+            'global': {'publicUrl': 'https://vocabs.example.org/'},
+            'gateway': {'enabled': True},
+            'ingress': {'enabled': True},
+        }, fail='Redmine ID is required when gateway Ingress is enabled')
+
+        render({
+            'fuseki': {
+                'ingress': {
+                    'enabled': True,
+                    'host': 'fuseki.example.org',
+                }
+            }
+        }, fail='Redmine ID is required when Fuseki Ingress is enabled')
+
+        render({
+            'swagger': {
+                'enabled': True,
+                'ingress': {
+                    'enabled': True,
+                    'allowAnubisBypass': True,
+                    'host': 'api.example.org',
+                }
+            }
+        }, fail='Redmine ID is required when Swagger Ingress is enabled')
 
     def test_private_ingresses_disabled_by_default(self):
         docs = render()

@@ -12,7 +12,7 @@ from test_render import render, find
 spec=importlib.util.spec_from_file_location('skosmos_public_url', 'scripts/skosmos-public-url.py')
 url_module=importlib.util.module_from_spec(spec); spec.loader.exec_module(url_module)
 URL='https://vocabs.example.org/'
-def values():return {'global':{'publicUrl':URL}, 'gateway':{'enabled':True,'anubis':{'signingKey':{'secret':{'create':False,'existingSecret':'test-anubis-signer','name':'','key':'ed25519-private-key-hex'}}}}, 'ingress':{'enabled':True}}
+def values():return {'global':{'publicUrl':URL}, 'gateway':{'enabled':True,'anubis':{'signingKey':{'secret':{'create':False,'existingSecret':'test-anubis-signer','name':'','key':'ed25519-private-key-hex'}}}}, 'ingress':{'enabled':True,'redmineId':'91001'}}
 def config(docs):return find(docs,'ConfigMap','gateway-nginx')['data']['nginx.conf']
 class Gateway(unittest.TestCase):
     def test_institute_naming(self):
@@ -82,17 +82,31 @@ class Gateway(unittest.TestCase):
         v=values();v['global']['publicUrl']='http://staging.example.org:8088/'
         docs=render(v);self.assertEqual(find(docs,'Ingress')['spec']['rules'][0]['host'],'staging.example.org')
         self.assertIn('proxy_set_header Host "staging.example.org:8088";',config(docs))
-        render({'ingress':{'enabled':True},'global':{'publicUrl':URL}},fail='requires gateway')
+        render({'ingress':{'enabled':True,'redmineId':'91002'},'global':{'publicUrl':URL}},fail='requires gateway')
         render({'ingress':{'host':'independent.example.org'}},fail='host')
     def test_redirects_headers_and_cors(self):
         docs=render(values());nginx=config(docs)
         names=yaml.safe_load(Path('chart/vocabs/values.yaml').read_text())['gateway']['conceptResolver']['namespaces']
-        self.assertEqual(len(names),21)
-        self.assertIn('|'.join(names),nginx)
+        self.assertEqual(names,[])
+        self.assertNotIn('js_content redirects.concept;',nginx)
+
+        v=values()
+        v['gateway']['conceptResolver']={'namespaces':['concept-a','concept-b']}
+        nginx=config(render(v))
+        self.assertIn('location ~ ^/(concept-a|concept-b)/.+',nginx)
+        self.assertIn('js_content redirects.concept;',nginx)
+
         self.assertIn('set $vocabs_public_url "https://vocabs.example.org/"',nginx)
-        for prefix in ['tadirah','invocation-type','bbt']:
-            self.assertIn(f'location ~ ^/{prefix}(/|$)',nginx)
-            self.assertIn(f'https://vocabs.dariah.eu/{prefix}',nginx)
+        self.assertNotIn('js_content redirects.external;',nginx)
+
+        v=values()
+        v['gateway']['externalRedirects']=[
+            {'prefix':'external-vocab','targetBaseUrl':'https://example.net/vocab','status':301},
+        ]
+        nginx=config(render(v))
+        self.assertIn('location ~ ^/external-vocab(/|$)',nginx)
+        self.assertIn('https://example.net/vocab',nginx)
+
         self.assertNotIn('vocabs.acdh.oeaw.ac.at',nginx)
         self.assertIn('map $http_x_forwarded_proto $public_scheme',nginx)
         self.assertIn('default https;',nginx)
@@ -133,12 +147,12 @@ class Gateway(unittest.TestCase):
           ({'anubis':{'store':{'backend':'valkey'}}},'backend'),
           ({'anubis':{'store':{'backend':'memory'}}},'persistence requires'),
           ({'conceptResolver':{'namespaces':['bad|regex']}},'namespaces'),
-          ({'externalRedirects':[{'prefix':'archecategory','targetBaseUrl':'https://example.net/foo','status':301}]},'conflicting'),
+          ({'conceptResolver':{'namespaces':['concept-a']},'externalRedirects':[{'prefix':'concept-a','targetBaseUrl':'https://example.net/foo','status':301}]},'conflicting'),
           ({'externalRedirects':[{'prefix':'a','targetBaseUrl':'https://example.net/";$host','status':301}]},'targetBaseUrl')]
         for patch,reason in patches:
             v=values();v['gateway'].update(patch)
             with self.subTest(patch=patch):render(v,fail=reason)
-        render({'swagger':{'enabled':True,'specUrl':URL+'swagger.json','ingress':{'enabled':True,'host':'api.example.org'}}},fail='bypasses Anubis')
+        render({'swagger':{'enabled':True,'specUrl':URL+'swagger.json','ingress':{'enabled':True,'redmineId':'91003','host':'api.example.org'}}},fail='bypasses Anubis')
     def test_network_and_config(self):
         docs=render(values());policy=find(docs,'NetworkPolicy','gateway')
         self.assertEqual(policy['spec']['ingress'],[])

@@ -37,8 +37,8 @@ it does not build containers or test Skosmos, CSI storage or production data.
 
 ## Public gateway acceptance
 
-Also follow `tests/gateway/README.md`: GET / and browser pages; archecategory and
-iso6393 concept redirects; tadirah suffix redirects; REST API; Turtle, RDF/XML
+Also follow `tests/gateway/README.md`: GET / and browser pages; configured concept
+configured concept redirects; configured external suffix redirects; REST API; Turtle, RDF/XML
 and supported JSON-LD Accept negotiation; CORS OPTIONS; completed Anubis browser
 challenges; and real machine/API clients. Run against the full Ingress → Anubis
 → Nginx → Skosmos path before promoting an environment.
