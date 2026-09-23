@@ -34,7 +34,7 @@ for engine in ['TDB1', 'TDB2']:
                'JENA_VERSION':version, 'EXPECTED_JENA_VERSION':version,
                'STORAGE_ENGINE':engine, 'ASSEMBLER':str(assembler),
                'TEXT_INDEX_DIR':str(work/'text'), 'BUILD_TEXT_INDEX':'true', 'VALIDATE_RDF':'true'}
-        subprocess.run([str(root/'images/jena-tools/load.sh'), str(work/'db'), str(root/'tests/integration/vocabulary.ttl')], env=env, check=True)
+        subprocess.run([str(root/'images/jena-tools/load.sh'), str(work/'db'), str(root/'tests/integration/vocabulary.trig')], env=env, check=True)
         with socket.socket() as sock:
             sock.bind(('127.0.0.1', 0))
             port = sock.getsockname()[1]
@@ -55,10 +55,11 @@ for engine in ['TDB1', 'TDB2']:
                     request = urllib.request.Request(base+'/skosmos/sparql?'+urllib.parse.urlencode({'query':sparql}), headers={'Accept':'application/sparql-results+json'})
                     with urllib.request.urlopen(request, timeout=10) as response:
                         return json.load(response)['results']['bindings']
-                assert query('SELECT (COUNT(*) AS ?n) WHERE {?s ?p ?o}')[0]['n']['value']=='22'
-                bindings=query('PREFIX text:<http://jena.apache.org/text#> SELECT ?s WHERE { ?s text:query "modern art" }')
+                assert query('SELECT (COUNT(*) AS ?n) WHERE {?s ?p ?o}')[0]['n']['value']=='0'
+                assert query('SELECT (COUNT(*) AS ?n) WHERE { GRAPH <https://example.org/graph/vocabulary> { ?s ?p ?o } }')[0]['n']['value']=='22'
+                bindings=query('PREFIX text:<http://jena.apache.org/text#> SELECT ?s WHERE { GRAPH <https://example.org/graph/vocabulary> { ?s text:query "modern art" } }')
                 assert any(b['s']['value']=='https://example.org/concept/modernArt' for b in bindings), bindings
-                print(f'{engine}: 22 triples, JenaText multi-word search and HTTP readiness passed', flush=True)
+                print(f'{engine}: empty default graph, 22 named-graph triples, JenaText multi-word search and HTTP readiness passed', flush=True)
             except Exception:
                 log.flush(); log.seek(0); print(log.read())
                 raise

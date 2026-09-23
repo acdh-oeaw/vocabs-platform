@@ -1,6 +1,6 @@
 # Future stack acceptance suite
 
-`vocabulary.ttl` is a small starter fixture, not a complete compatibility suite.
+`vocabulary.trig` is a small starter fixture, not a complete compatibility suite.
 Add stable expected results and representative ACDH data before promoting a
 profile. Cover broader/narrower, preferred/alternative/hidden labels, notation,
 collections, mapping relations, English/German and multi-word examples.
@@ -30,8 +30,9 @@ archives extracted locally, run:
 ```
 
 It imports and indexes both TDB1 and TDB2 in temporary directories, opens a
-localhost Fuseki server, checks 22 triples and multi-word text search, then sends
-SIGTERM and waits for shutdown. It requires local TCP permission and is separate
+localhost Fuseki server, verifies an empty default graph, 22 triples in the named
+graph and multi-word JenaText search inside that graph, then sends SIGTERM and
+waits for shutdown. It requires local TCP permission and is separate
 from Helm CI. It exercises the actual load.sh wrapper and generated assembler;
 it does not build containers or test Skosmos, CSI storage or production data.
 
