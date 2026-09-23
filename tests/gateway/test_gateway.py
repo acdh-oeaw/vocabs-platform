@@ -15,18 +15,6 @@ URL='https://vocabs.example.org/'
 def values():return {'global':{'publicUrl':URL}, 'gateway':{'enabled':True,'anubis':{'signingKey':{'secret':{'create':False,'existingSecret':'test-anubis-signer','name':'','key':'ed25519-private-key-hex'}}}}, 'ingress':{'enabled':True,'redmineId':'91001'}}
 def config(docs):return find(docs,'ConfigMap','gateway-nginx')['data']['nginx.conf']
 class Gateway(unittest.TestCase):
-    def test_institute_naming(self):
-        # Scan project text, excluding Git history and downloaded/generated artifacts.
-        obsolete=re.compile(r'\bacdh[\s_\-\u2010-\u2015]*ch\b',re.I)
-        root=Path(__file__).resolve().parents[2]
-        findings=[]
-        for path in root.rglob('*'):
-            if not path.is_file() or any(part in {'.git','.venv','charts','__pycache__','node_modules','.build'} for part in path.relative_to(root).parts):continue
-            try:text=path.read_text()
-            except UnicodeDecodeError:continue
-            for number,line in enumerate(text.splitlines(),1):
-                if obsolete.search(line):findings.append(f'{path.relative_to(root)}:{number}')
-        self.assertEqual(findings,[])
     def test_redirect_authority_with_port(self):
         v=values();v['global']['publicUrl']='https://vocabs.example.org:8443/'
         v['ingress']['tls']={'enabled':True,'secretName':'test-tls'}

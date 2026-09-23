@@ -20,8 +20,8 @@ gateway:
 skosmos:
   replicas: 1
   config:
-    existingConfigMap: ""
-    revision: ""
+    existingConfigMap: vocabs-platform-dev-vocabs-skosmos-config-r005a
+    revision: r005a
   resources:
     requests: {cpu: 100m, memory: 128Mi}
     limits: {cpu: "1", memory: 512Mi}
@@ -47,20 +47,21 @@ fuseki:
     className: nginx
     annotations:
       cert-manager.io/cluster-issuer: acdh-prod
+    redmineId: "12346"
     tls:
       enabled: true
       secretName: jena-vp-dev-tls
 data:
-  activeClaim: vocabs-data-r001
-  revision: r001
+  activeClaim: vocabs-data-r005
+  revision: r005
   managedClaims:
     - name: vocabs-data-r001
-      size: 30Gi
+      size: 40Gi
       storageClassName: ceph-rbd-pool
       accessModes: [ReadWriteOnce]
       retain: true
     - name: vocabs-data-r002
-      size: 30Gi
+      size: 40Gi
       storageClassName: ceph-rbd-pool
       accessModes: [ReadWriteOnce]
       retain: true
@@ -72,11 +73,10 @@ imports:
     type: pvc
     pvc:
       existingClaim: vocabs-import
-      files:
-        - /data/example.rdf
 ingress:
   enabled: true
   className: nginx
+  redmineId: "12347"
   annotations:
     cert-manager.io/cluster-issuer: acdh-prod
   tls:
@@ -92,10 +92,13 @@ swagger:
     className: nginx
     annotations:
       cert-manager.io/cluster-issuer: acdh-prod
+    redmineId: "12349"
     tls:
       enabled: true
       secretName: vocabsapi-vp-dev-tls
 vinyl:
+  podAnnotations:
+    vocabs.acdh.oeaw.ac.at/data-revision: vocabs-data-r005/r005
   service:
     type: ClusterIP
     port: 80
