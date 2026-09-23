@@ -54,25 +54,7 @@ fuseki:
 data:
   activeClaim: vocabs-data-r005
   revision: r005
-  managedClaims:
-    - name: vocabs-data-r001
-      size: 40Gi
-      storageClassName: ceph-rbd-pool
-      accessModes: [ReadWriteOnce]
-      retain: true
-    - name: vocabs-data-r002
-      size: 40Gi
-      storageClassName: ceph-rbd-pool
-      accessModes: [ReadWriteOnce]
-      retain: true
-imports:
-  job:
-    enabled: false
-  targetClaim: vocabs-data-r002
-  source:
-    type: pvc
-    pvc:
-      existingClaim: vocabs-import
+  managedClaims: []
 ingress:
   enabled: true
   className: nginx
