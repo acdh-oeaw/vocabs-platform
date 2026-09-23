@@ -31,6 +31,20 @@ spec:
                 port:
                   number: {{ .Values.skosmos.service.port }}
           - path: /rest/v1
+            pathType: Exact
+            backend:
+              service:
+                name: {{ include "vocabs.fullname" . }}-gateway
+                port:
+                  number: {{ .Values.gateway.service.port }}
+          - path: /rest/v1/
+            pathType: Exact
+            backend:
+              service:
+                name: {{ include "vocabs.fullname" . }}-gateway
+                port:
+                  number: {{ .Values.gateway.service.port }}
+          - path: /rest/v1
             pathType: Prefix
             backend:
               service:

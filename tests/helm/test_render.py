@@ -186,10 +186,21 @@ class Rendering(unittest.TestCase):
         self.assertEqual(swagger['metadata']['labels']['ID'], '90005')
         self.assertNotIn('nginx.ingress.kubernetes.io/whitelist-source-range', swagger['metadata'].get('annotations', {}))
         paths = swagger['spec']['rules'][0]['http']['paths']
-        self.assertEqual([(path['path'], path['pathType']) for path in paths], [('/swagger.json', 'Exact'), ('/rest/v1', 'Prefix'), ('/', 'Prefix')])
+        self.assertEqual(
+            [(path['path'], path['pathType']) for path in paths],
+            [
+                ('/swagger.json', 'Exact'),
+                ('/rest/v1', 'Exact'),
+                ('/rest/v1/', 'Exact'),
+                ('/rest/v1', 'Prefix'),
+                ('/', 'Prefix'),
+            ],
+        )
         self.assertEqual(paths[0]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-skosmos')
-        self.assertEqual(paths[1]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-skosmos')
-        self.assertEqual(paths[2]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-swagger')
+        self.assertEqual(paths[1]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-gateway')
+        self.assertEqual(paths[2]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-gateway')
+        self.assertEqual(paths[3]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-skosmos')
+        self.assertEqual(paths[4]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-swagger')
         swagger_container = find(docs, 'Deployment', 'swagger')['spec']['template']['spec']['containers'][0]
         self.assertEqual(swagger_container['env'][0]['value'], '/swagger.json')
         self.assertEqual(find(docs, 'Service', 'fuseki')['spec']['type'], 'ClusterIP')
