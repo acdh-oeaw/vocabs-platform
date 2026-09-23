@@ -9,6 +9,8 @@ gateway:
   enabled: true
   replicas: 1
   anubis:
+    persistence:
+      existingClaim: vocabs-platform-dev-vocabs-gateway-state-r006
     signingKey:
       secret:
         create: true
@@ -50,8 +52,8 @@ fuseki:
       enabled: true
       secretName: jena-vp-dev-tls
 data:
-  activeClaim: vocabs-data-r005
-  revision: r005
+  activeClaim: vocabs-data-r006
+  revision: r006
   managedClaims:
     - name: vocabs-data-r006
       size: 40Gi
@@ -82,7 +84,7 @@ swagger:
       secretName: vocabsapi-vp-dev-tls
 vinyl:
   podAnnotations:
-    vocabs.acdh.oeaw.ac.at/data-revision: vocabs-data-r005/r005
+    vocabs.acdh.oeaw.ac.at/data-revision: vocabs-data-r006/r006
   service:
     type: ClusterIP
     port: 80
