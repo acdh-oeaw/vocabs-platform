@@ -9,7 +9,7 @@ metadata:
   annotations:
     helm.sh/resource-policy: keep
 spec:
-  accessModes: [ReadWriteOnce]
+  accessModes: [ReadWriteMany]
   {{- if eq $p.storageClassName "-" }}
   storageClassName: ""
   {{- else if $p.storageClassName }}

@@ -15,8 +15,6 @@ gateway:
         name: vocabs-platform-anubis-signing
         existingSecret: ""
         key: ed25519-private-key-hex
-    persistence:
-      storageClassName: ceph-rbd-pool
 skosmos:
   replicas: 1
   config:
@@ -54,7 +52,11 @@ fuseki:
 data:
   activeClaim: vocabs-data-r005
   revision: r005
-  managedClaims: []
+  managedClaims:
+    - name: vocabs-data-r006
+      size: 40Gi
+      accessModes: [ReadWriteMany]
+      retain: true
 ingress:
   enabled: true
   className: nginx

@@ -159,7 +159,7 @@ data:
     - name: vocabs-data-r001
       size: 10Gi
       storageClassName: "" # Omit storageClassName to use cluster default; '-' disables dynamic provisioning.
-      accessModes: [ReadWriteOnce]
+      accessModes: [ReadWriteMany]
       retain: true # Mandatory for database claims; delete explicitly after retention.
 
 imports:

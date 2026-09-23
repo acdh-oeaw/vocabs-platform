@@ -119,20 +119,20 @@ gateway:
         existingSecret: ""
         key: ed25519-private-key-hex
     persistence:
-      storageClassName: ceph-rbd-pool
+      storageClassName: ""
 data:
   activeClaim: vocabs-data-r001
   revision: r001
   managedClaims:
     - name: vocabs-data-r001
-      storageClassName: ceph-rbd-pool
+      storageClassName: ""
       size: 30Gi
-      accessModes: [ReadWriteOnce]
+      accessModes: [ReadWriteMany]
       retain: true
     - name: vocabs-data-r002
-      storageClassName: ceph-rbd-pool
+      storageClassName: ""
       size: 30Gi
-      accessModes: [ReadWriteOnce]
+      accessModes: [ReadWriteMany]
       retain: true
 imports:
   job:
@@ -147,10 +147,10 @@ imports:
 ```
 
 Provision the separate shared RDF source PVC `vocabs-import` in namespace
-`vocabs-platform-dev` with StorageClass `ceph-csi-cephfs-default-1`, appropriate
+`vocabs-platform-dev` with the cluster default StorageClass, appropriate
 capacity and access modes. The chart references this existing source claim;
 it does not create it or choose its StorageClass. Database and Anubis storage
-use `ceph-rbd-pool` as shown above.
+use the cluster default StorageClass as shown above.
 
 Replace Secret placeholders with existing namespace-local TLS/signing Secrets.
 Generate the Skosmos ConfigMap for this exact public URL, supply verified
