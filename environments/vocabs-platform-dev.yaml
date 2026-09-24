@@ -90,3 +90,15 @@ vinyl:
     port: 80
     targetPort: 6081
     internalTrafficPolicy: Cluster
+
+downloads:
+  ingress:
+    enabled: true
+    host: vocabs-downloads-vp-dev.acdh-dev.oeaw.ac.at
+    className: nginx
+    redmineId: "12350" # Add real Redmine ID-om.
+    annotations:
+      cert-manager.io/cluster-issuer: acdh-prod
+    tls:
+      enabled: true
+      secretName: vocabs-downloads-vp-dev-tls

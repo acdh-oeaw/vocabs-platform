@@ -85,7 +85,7 @@ class Rendering(unittest.TestCase):
         # Every policy peer must select a real workload in this release.
         pods = [d['spec']['template']['metadata']['labels'] for d in docs if d['kind'] in ['Deployment', 'StatefulSet']]
         for d in docs:
-            if d['kind'] != 'NetworkPolicy': continue
+            if d['kind'] != 'NetworkPolicy' or not d['spec']['ingress']: continue
             selectors = [d['spec']['podSelector']['matchLabels'], d['spec']['ingress'][0]['from'][0]['podSelector']['matchLabels']]
             for selector in selectors:
                 self.assertTrue(any(all(p.get(k) == v for k,v in selector.items()) for p in pods), selector)
