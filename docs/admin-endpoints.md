@@ -1,5 +1,9 @@
 # Administrative endpoints
 
+For day-to-day diagnostics, use the read-only commands in the
+[operator guide](operator-guide.md#troubleshooting). This page documents the
+administrative topology and credential lifecycle for platform maintainers.
+
 The development deployment has one normal public application endpoint:
 
 `https://vocabs-platform-dev.acdh-dev.oeaw.ac.at/`

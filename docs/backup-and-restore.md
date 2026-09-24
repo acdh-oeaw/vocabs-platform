@@ -1,5 +1,10 @@
 # Backup and disaster recovery
 
+Routine candidate activation and rollback commands are in the
+[operator guide](operator-guide.md). A disaster restore requires a platform
+maintainer and the environment-specific Velero/CSI procedure; do not treat a
+candidate rollback as a replacement for a backup.
+
 The cluster already supplies Velero; this chart neither installs nor replaces it.
 Blue/green PVC revisions provide operational deployment and fast rollback. Velero
 backs up Kubernetes state and storage for disaster recovery. Immutable RDF dumps

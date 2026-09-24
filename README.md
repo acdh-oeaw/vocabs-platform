@@ -142,6 +142,12 @@ external policies, signing-key Secret references and pilot requirements.
 
 ## Operations
 
+For routine imports, migrations, activation, rollback and troubleshooting, start
+with the [operator guide](docs/operator-guide.md). It uses the actual dev release
+name, generates reviewable values files and gives commands in execution order.
+Run each command separately and stop on any error. The technical runbooks below
+explain the safety constraints behind those steps.
+
 Fuseki uses a StatefulSet with one replica and an explicit active PVC. Jena/TDB
 must have one JVM owning its database; RWO storage alone does not enforce this.
 Updates wait for the old pod to exit normally before starting its replacement.

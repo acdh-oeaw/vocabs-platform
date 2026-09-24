@@ -5,6 +5,7 @@ cd "$(dirname "$0")/.."
 command -v helm >/dev/null
 command -v kubeconform >/dev/null || { echo 'Install kubeconform v0.6.7; see README. Validation cannot silently skip it.' >&2; exit 1; }
 helm lint ./chart/vocabs
+"$PYTHON" tests/test_operator_plan.py
 "$PYTHON" tests/test_theme.py
 "$PYTHON" tests/helm/test_render.py
 "$PYTHON" tests/test_load.py

@@ -1,5 +1,8 @@
 # Environment values
 
+Operators should use the [step-by-step guide](../docs/operator-guide.md) to
+generate local values for an import instead of hand-editing multiple YAML files.
+
 `example.yaml` is renderable, explicitly non-production configuration. Replace
 CHANGE-ME storage/ingress/TLS values, global.publicUrl, and source paths before
 installation. No credentials belong here. Supply existing Kubernetes Secret names

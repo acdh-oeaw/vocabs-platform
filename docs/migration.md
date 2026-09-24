@@ -1,5 +1,9 @@
 # Migration, one namespace at a time
 
+For a new migration, follow the [operator guide](operator-guide.md) for the
+current release and export/import commands. The dated case study below records
+what happened in 2026; its claim names and exceptions are not commands to rerun.
+
 1. Inventory the existing namespace and responsible maintainers.
 2. Record hostname, canonical URI behavior, Skosmos config, original RDF sources,
    graph names, Jena version and TDB engine, JenaText analyzer/index configuration,

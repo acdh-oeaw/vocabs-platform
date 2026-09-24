@@ -1,5 +1,9 @@
 # Helm publishing and Rancher installation
 
+For vocabulary imports, migration, routine checks and rollback after the
+installation, use the [operator guide](operator-guide.md). This document is for
+initial Helm/Rancher setup and chart publication.
+
 The public HTTP Helm repository for both Helm and Rancher is:
 
 ```text

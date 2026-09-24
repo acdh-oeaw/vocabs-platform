@@ -1,5 +1,11 @@
 # Candidate imports and activation
 
+**Start here for copyable commands:** [operator guide](operator-guide.md).
+It generates the PVC values, one-off Job, validator Pod, maintenance and
+activation values without asking operators to write Kubernetes YAML. This page
+explains the safety model and exceptions. Do not reuse the `r002` examples
+below for a live `r006` release.
+
 The active JVM owns one PVC. An offline Job mounts another, empty candidate while
 production continues serving. The chart rejects active-target equality and source
 aliasing, but it cannot observe Jobs created by other releases or previous

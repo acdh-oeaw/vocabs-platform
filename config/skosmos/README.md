@@ -1,5 +1,10 @@
 # Modular Skosmos configuration
 
+For a routine update to an existing release, follow the
+[operator guide](../../docs/operator-guide.md), which exports the accepted
+configuration, validates the new fragment and creates a revisioned ConfigMap.
+The examples below explain the underlying configuration rules.
+
 For a new environment, start from `base.ttl.example`, add the required
 categories and `vocabularies/*.ttl`, then adapt the environment-specific
 settings before generating the external ConfigMap.
