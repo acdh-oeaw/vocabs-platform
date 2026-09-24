@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "vocabs.fullname" . }}-downloads
+  labels:
+    {{- include "vocabs.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.downloads.replicas }}
+  selector:
+    matchLabels:
+      {{- include "vocabs.selector" . | nindent 6 }}
+      app.kubernetes.io/component: downloads
+  template:
+    metadata:
+      labels:
+        {{- include "vocabs.selector" . | nindent 8 }}
+        app.kubernetes.io/component: downloads
+    spec:
+      serviceAccountName: {{ include "vocabs.sa" . }}
+      automountServiceAccountToken: false
+      imagePullSecrets: {{ toJson .Values.imagePullSecrets }}
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: downloads
+          image: {{ printf "%s@%s" .Values.downloads.image.repository .Values.downloads.image.digest | quote }}
+          imagePullPolicy: {{ .Values.downloads.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+          resources:
+            {{- toYaml .Values.downloads.resources | nindent 12 }}
+          readinessProbe:
+            tcpSocket: {port: http}
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket: {port: http}
+            initialDelaySeconds: 30
+            periodSeconds: 20

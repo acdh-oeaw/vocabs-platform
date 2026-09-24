@@ -293,3 +293,23 @@ gateway:
     allowMethods: [POST, GET, OPTIONS, DELETE, PUT]
     maxAge: 1000
     allowHeaders: [x-requested-with, Content-Type, origin, accept]
+
+# Public static Apache service with vocabulary dumps.
+downloads:
+  replicas: 1
+  image:
+    repository: ghcr.io/acdh-oeaw/vocabs-dumps
+    digest: "sha256:2f846a350a7f8049e6580b628534b5c5bc352acd3617a438f2954571dd27e7f4"
+    pullPolicy: IfNotPresent
+  service:
+    port: 80
+  resources:
+    requests: {cpu: 50m, memory: 64Mi}
+    limits: {cpu: 500m, memory: 256Mi}
+  ingress:
+    enabled: false
+    host: ""
+    className: ""
+    redmineId: ""
+    annotations: {}
+    tls: {enabled: false, secretName: ""}
