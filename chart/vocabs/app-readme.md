@@ -2,6 +2,9 @@
 
 Development pilot: Anubis/Nginx gateway, Skosmos, Vinyl Cache and single-writer Fuseki.
 This chart is not yet production certified.
+The downloads Deployment and Service are always installed. Configure a separate
+downloads Ingress, TLS Secret and verified `downloads.image.digest` for each
+public environment. The downloads endpoint serves files without Anubis.
 
 Configure installation through the values YAML editor. `values.yaml` and
 `values.schema.json` are authoritative; no Rancher-specific configuration is

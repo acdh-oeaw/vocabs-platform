@@ -42,7 +42,7 @@ separate Helm dependency build. Concurrent releases are serialized.
   alone does not publish another package under an existing chart version.
 - Version bumps are explicit reviewed Git changes; CI never edits versions.
   `skip_existing: true` preserves existing releases instead of replacing assets.
-  The current version `0.2.0-dev` remains a prerelease.
+  The current version `0.2.0-dev.20` remains a prerelease.
 
 The publishing step uses only `secrets.GITHUB_TOKEN`, with no PAT, package-write,
 Actions-write, or OIDC permissions. Checkout credentials are not persisted.
@@ -87,6 +87,19 @@ Actions-write, or OIDC permissions. Checkout credentials are not persisted.
    [GitHub Pages publishing sources](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
    This workflow does not add broader permissions or a PAT to bypass that limit.
 
+## Downloads
+
+The chart always starts a downloads Deployment and ClusterIP Service from
+`ghcr.io/acdh-oeaw/vocabs-dumps@<digest>`. Set the reviewed image index
+digest in `downloads.image.digest` for each release. To expose it, configure
+`downloads.ingress` with an environment-specific hostname, Redmine ID,
+Ingress class and TLS Secret. The dev release uses its own hostname; keep
+the existing production hostname and file paths during production cutover.
+The downloads endpoint serves Apache directly, without an Anubis challenge.
+A new dumps build requires a digest update and Helm upgrade; the legacy
+Rancher redeploy step must be retired once Helm owns the production service.
+See the [architecture](architecture.md) and [environment values](../environments/README.md).
+
 ## Add the repository in Rancher
 
 In the target **Cluster → Apps → Repositories → Create**, choose an **HTTP(S)
@@ -102,10 +115,10 @@ installation values. These development settings are not chart defaults.
 
 ```yaml
 global:
-  publicUrl: https://vocabs-platform.acdh-dev.oeaw.ac.at/
+  publicUrl: https://vocabs-platform-dev.acdh-dev.oeaw.ac.at/
 ingress:
   enabled: true
-  className: traefik
+  className: nginx
   tls:
     enabled: true
     secretName: CHANGE-ME-TLS-SECRET
@@ -155,13 +168,11 @@ use the cluster default StorageClass as shown above.
 Replace Secret placeholders with existing namespace-local TLS/signing Secrets.
 Generate the Skosmos ConfigMap for this exact public URL, supply verified
 platform images, and set `networkPolicy.gatewayIngressPeers` for the actual
-Traefik pods/namespaces. Empty peers deny ingress; do not guess cluster labels.
-The GHCR packages for `vocabs-skosmos`, `vocabs-fuseki` and `vocabs-jena-tools`
-must be public for this pilot unless a future deployment intentionally adds an
-imagePullSecret in Kubernetes. The current chart does not store registry
-credentials in Helm values or Git; if package visibility cannot be changed via
-`GITHUB_TOKEN` permissions, a maintainer must switch the three packages to public
-in GitHub Packages manually before Rancher can pull them.
+ingress-controller pods/namespaces. Empty peers deny ingress; do not guess cluster labels.
+The GHCR images for `vocabs-skosmos`, `vocabs-fuseki`, `vocabs-jena-tools`
+and `vocabs-dumps` must be publicly readable or pulled with an existing
+Kubernetes Secret referenced by `imagePullSecrets`. Keep registry credentials
+out of Git.
 See [gateway prerequisites](gateway.md), [Skosmos configuration](../config/skosmos/README.md),
 [storage](storage.md), and [candidate imports](imports.md). Install does not load
 RDF automatically. Keep the active/candidate workflow and revision safeguards.
@@ -169,12 +180,13 @@ RDF automatically. Keep the active/candidate workflow and revision safeguards.
 After reviewing values, a CLI equivalent is:
 
 ```bash
-helm upgrade --install vocabs acdh-vocabs/vocabs \
-  --version 0.2.0-dev --namespace vocabs-platform-dev --create-namespace \
-  -f environments/example.yaml -f environments/local-pilot.yaml
+helm upgrade --install vocabs-platform-dev acdh-vocabs/vocabs \
+  --version 0.2.0-dev.20 --namespace vocabs-platform-dev \
+  -f environments/vocabs-platform-dev.yaml
 ```
 
-Here `environments/local-pilot.yaml` is your local override file with the settings
-above and resolved prerequisites; its name is already ignored by Git.
+The command targets the existing `vocabs-platform-dev` release. The pilot
+values above illustrate the required settings; the tracked
+`environments/vocabs-platform-dev.yaml` contains the current dev configuration.
 Publishing does not certify the runtime stack or replace the Kubernetes pilot
 acceptance tests in the existing runbooks.

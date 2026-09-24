@@ -15,6 +15,14 @@ all three. Never persist an import-enabled overlay as normal release values.
 Commit safe configuration metadata; keep private local values in ignored
 `environments/local*.yaml` or your deployment secret/config system.
 
+Downloads Deployment and Service are always present. Configure
+`downloads.ingress.enabled`, `host`, `className`, `redmineId` and TLS for
+each public environment. Set a distinct dev hostname; keep
+`vocabs-downloads.acdh.oeaw.ac.at` for production. Pin
+`downloads.image.digest` to the published multi-platform image index.
+When NetworkPolicy is enabled, `networkPolicy.gatewayIngressPeers` also
+controls access to downloads.
+
 The example enables the gateway; generic values keep it disabled. Set the actual
 controller peer selectors under networkPolicy.gatewayIngressPeers or gateway
 traffic will be denied by an enforcing CNI. The URL must end in `/` and use the

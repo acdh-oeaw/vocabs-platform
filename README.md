@@ -16,9 +16,9 @@ Shared RDF source PVC → explicit offline import Job → separate candidate PVC
 Vinyl Cache is managed directly by the parent chart as an internal ClusterIP
 Deployment and Service. Its image and compatibility version are resolved by the
 stack profile; cache invalidation is tied to the active data revision. Fuseki and
-Vinyl Cache are ClusterIP only; only the gateway receives the application
-ingress. Separate Swagger ingress
-requires an explicit Anubis-bypass acknowledgement. NetworkPolicies default to
+Vinyl Cache are ClusterIP only. The gateway serves the application Ingress;
+a separate downloads Ingress serves static vocabulary dumps. Separate
+Swagger ingress requires an explicit Anubis-bypass acknowledgement. NetworkPolicies default to
 restricting backend ingress. A CNI must enforce them; without enforcement they
 have no effect. This chart does not assume ingress-controller labels or install a CNI.
 
@@ -97,6 +97,22 @@ resources. The default release produces `vocabs-vocabs-fuseki` and
 `vocabs-vocabs-vinyl` service names. Name overrides require setting
 `global.vocabsFusekiHost` to the generated Fuseki name. External Skosmos TTL must
 point to that release's **Vinyl Cache** service, not directly to Fuseki.
+
+## Vocabulary downloads
+
+The chart always deploys a downloads Deployment and ClusterIP Service. The
+Apache image from `vocabs-acdh-dumps` contains the published files and is pinned
+by `downloads.image.digest`; it does not require a PVC or a Fuseki connection.
+Each environment configures its own `downloads.ingress.host`, TLS Secret and
+Ingress class. The downloads Ingress sends requests directly to Apache, without
+the Anubis gateway, and preserves the requested file path.
+
+When a new dumps image is published, update `downloads.image.digest`, run a
+Helm upgrade and verify an actual vocabulary download URL. Production must keep
+`vocabs-downloads.acdh.oeaw.ac.at` and its existing paths when traffic moves to
+the chart-managed Ingress. Keep the previous service available until that check
+passes. With NetworkPolicy enabled, downloads admits the controller peers from
+`networkPolicy.gatewayIngressPeers`; an empty list denies ingress.
 
 ## Public gateway
 
