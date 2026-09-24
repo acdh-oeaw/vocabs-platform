@@ -18,6 +18,11 @@
    with a documented retention window and a tested reverse traffic switch.
 10. Migrate the next namespace only after the current one is stable.
 
+For the downloads hostname, verify a representative existing dump path and
+its content through the new Ingress before switching production DNS or
+removing the old Ingress. Ensure only one active release owns the production
+hostname and retain the old image and routing for rollback.
+
 Do not copy an old TDB1 database into an incompatible TDB2 runtime. RDF is the
 portable source of truth. Prefer fresh imports even for version upgrades unless
 physical compatibility is explicitly established and tested. ACDH-specific theme

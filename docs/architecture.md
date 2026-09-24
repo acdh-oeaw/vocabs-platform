@@ -15,7 +15,7 @@ one are rejected, and Recreate updates prevent overlapping bbolt writers. Future
 HA requires a shared state design; this iteration deploys no Redis/Valkey,
 operator, CRDs or cluster controllers. See [the gateway runbook](gateway.md).
 
-`global.publicUrl` is the single public URL input, stored in environment values,
+`global.publicUrl` is the canonical gateway URL, stored in environment values,
 not GitHub variables. It derives ingress hostname, gateway public scheme/host,
 redirect targets and generated Skosmos baseHref. External Skosmos ConfigMaps must
 be generated/validated against that value using scripts/configmap.sh or
@@ -24,6 +24,13 @@ Ingress must set trusted forwarded headers. Nginx preserves the public scheme
 with a canonical fallback, never its internal HTTP scheme. The declarative
 namespace and external-redirect lists preserve the requested legacy URI routing;
 compare edge cases to the actual old proxy in the pilot.
+
+Downloads uses a separate public Ingress and ClusterIP Service on port 80.
+It serves files packaged in the `vocabs-dumps` Apache image pinned by digest.
+It bypasses the Anubis gateway so automated RDF downloads receive the file
+directly. No dump PVC, import Job or Fuseki connection is required. The downloads
+host and TLS settings come from `downloads.ingress`, independently of
+`global.publicUrl`. The existing production download paths must be preserved.
 
 Swagger's separate ingress is an explicit, documented exception that bypasses
 Anubis and requires swagger.ingress.allowAnubisBypass=true. It remains disabled
@@ -39,9 +46,10 @@ permissions are granted; parent workloads disable service account token mounts.
 Vinyl Cache is managed directly by the parent chart. Its pod disables service
 account token mounting and runs with the chart-defined restricted security context.
 
-NetworkPolicies permit configured ingress-controller peers → Gateway, same-release
-Gateway → Skosmos, Skosmos → Vinyl Cache and Vinyl Cache → Fuseki. Empty gateway peers
-deny incoming gateway traffic until operators provide actual controller selectors.
+NetworkPolicies permit configured ingress-controller peers → Gateway and Downloads,
+same-release Gateway → Skosmos, Skosmos → Vinyl Cache and Vinyl Cache → Fuseki.
+Empty gateway peers deny incoming gateway and downloads traffic until operators
+provide actual controller selectors.
 Offline imports use PVCs and receive no network exception. Additional peers are
 explicit Kubernetes pod/namespace selectors. NetworkPolicies are additive: other
 policies can broaden access. Egress is not restricted here; DNS remains usable.
