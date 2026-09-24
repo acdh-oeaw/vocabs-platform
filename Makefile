@@ -12,6 +12,7 @@ template:
 validate:
 	PYTHON=$(PYTHON) bash scripts/validate.sh
 test:
+	$(PYTHON) tests/test_operator_plan.py
 	$(PYTHON) tests/test_theme.py
 	$(PYTHON) tests/helm/test_render.py
 	$(PYTHON) tests/test_load.py
