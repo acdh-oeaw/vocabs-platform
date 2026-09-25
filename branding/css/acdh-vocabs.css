@@ -381,10 +381,6 @@ footer {
   margin-bottom: 1.5rem;
 }
 
-.acdh-hero p {
-  max-width: 65ch;
-}
-
 #main-container.about > .container {
   max-width: var(--acdh-content-width);
 }
@@ -453,7 +449,8 @@ footer {
 .acdh-hero-inner {
   max-width: var(--acdh-content-width);
   margin-inline: auto;
-  padding-inline: clamp(1rem, 3%, 2rem);
+  padding-inline: clamp(1rem, 2vw, 1.25rem);
+  text-align: center;
 }
 
 .acdh-hero-inner > :last-child {
