@@ -362,6 +362,11 @@ footer {
   padding-block: .5rem !important;
 }
 
+/* The landing logo moves into the topbar; retain the hidden h1 and divider. */
+.frontpage-logo.acdh-logo-in-topbar #headerbar {
+  padding-block: 0 !important;
+}
+
 #landing-start-slot {
   width: 100%;
 }

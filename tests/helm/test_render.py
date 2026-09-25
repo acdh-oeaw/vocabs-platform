@@ -102,8 +102,8 @@ class Rendering(unittest.TestCase):
         self.assertEqual(profile['skosmos']['version'], '3.3')
         self.assertEqual(profile['skosmos']['upstreamTag'], 'v3.3')
         self.assertEqual(profile['imageRevision'], 'r1')
-        self.assertEqual(profile['skosmos']['imageRevision'], 'r9')
-        self.assertEqual(f"ghcr.io/acdh-oeaw/vocabs-skosmos:{profile['skosmos']['version']}-{profile['skosmos']['imageRevision']}", 'ghcr.io/acdh-oeaw/vocabs-skosmos:3.3-r9')
+        self.assertEqual(profile['skosmos']['imageRevision'], 'r10')
+        self.assertEqual(f"ghcr.io/acdh-oeaw/vocabs-skosmos:{profile['skosmos']['version']}-{profile['skosmos']['imageRevision']}", 'ghcr.io/acdh-oeaw/vocabs-skosmos:3.3-r10')
 
     def test_example_and_swagger_ingress(self):
         v = yaml.safe_load(Path('environments/example.yaml').read_text())

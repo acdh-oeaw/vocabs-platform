@@ -2,6 +2,16 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   if (!document.body.classList.contains('frontpage-logo')) return;
+
+  // Skosmos places the landing identity below the menu in the headerbar slot.
+  // Move the existing link before the navigation, preserving its focus order.
+  const nav = document.getElementById('topbar-nav');
+  const logo = document.querySelector('#headerbar-top-slot .acdh-header-logo');
+  if (nav?.parentElement && logo) {
+    nav.parentElement.insertBefore(logo, nav);
+    document.body.classList.add('acdh-logo-in-topbar');
+  }
+
   const target = document.getElementById('acdh-landing-search');
   const bar = document.getElementById('global-search-bar');
   const toggle = document.getElementById('global-search-toggle');
