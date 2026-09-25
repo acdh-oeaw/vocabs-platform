@@ -4,6 +4,27 @@ The ACDH theme is owned by this repository and is baked into the immutable
 `vocabs-skosmos` image. The old `acdh-oeaw/vocabs-update-theme` repository is a
 migration and reference source only; it is not a runtime dependency.
 
+## ARCHE `/entity` compatibility
+
+Skosmos v3.3 passes an absent `Accept` header through to its content
+negotiation library, which rejects an empty header. The image build applies the
+small `images/skosmos/apply-entity-accept.php` change to the pinned upstream
+`EntityController.php`: an empty header becomes `*/*`. The build fails if that
+upstream call changes, so the compatibility change must be reviewed on Skosmos
+upgrades. This ports the relevant fix from `vocabs-update-theme` without
+shipping the old Skosmos 2 controller.
+
+With no `Accept`, `/entity?uri=<known concept URI>` should return HTTP 303 to
+the concept's HTML page. Requests that specify an RDF `Accept` header should
+still return HTTP 303 to the appropriate `/rest/v1/` URL. An absent `Accept`
+does not request RDF; ARCHE must specify a format if it needs RDF data.
+
+Build and publish this in a new Skosmos image revision (after `3.3-r8`), then
+update the development compatibility profile and chart release only after the
+new image is available. Validate both redirect cases using real concept URIs
+on dev before using the image in production. Neither the running release nor
+the compatibility profile is changed by the source patch alone.
+
 ## Where files live
 
 - `branding/css/acdh-vocabs.css` contains the ACDH CSS variables and the small
