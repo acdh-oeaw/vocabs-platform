@@ -130,7 +130,7 @@ class Rendering(unittest.TestCase):
         ingresses = {d['metadata']['name']: d for d in docs if d['kind'] == 'Ingress'}
 
         public = ingresses['vocabs-platform-dev-vocabs-gateway']
-        self.assertEqual(public['spec']['ingressClassName'], 'traefik')
+        self.assertEqual(public['spec']['ingressClassName'], 'nginx')
         self.assertEqual(public['spec']['rules'][0]['host'], 'vocabs-platform-dev.acdh-dev.oeaw.ac.at')
         self.assertEqual(public['spec']['tls'][0]['secretName'], 'vocabs-platform-dev-tls')
         self.assertEqual(public['metadata']['annotations']['cert-manager.io/cluster-issuer'], 'acdh-prod')
@@ -148,7 +148,7 @@ class Rendering(unittest.TestCase):
         self.assertNotIn(generated_key, str(gateway))
 
         fuseki = ingresses['vocabs-platform-dev-vocabs-fuseki-admin']
-        self.assertEqual(fuseki['spec']['ingressClassName'], 'traefik')
+        self.assertEqual(fuseki['spec']['ingressClassName'], 'nginx')
         self.assertEqual(fuseki['spec']['rules'][0]['host'], 'jena-vp-dev.acdh-cluster-2.arz.oeaw.ac.at')
         self.assertEqual(fuseki['spec']['tls'][0]['secretName'], 'jena-vp-dev-tls')
         self.assertEqual(fuseki['metadata']['annotations']['cert-manager.io/cluster-issuer'], 'acdh-prod')
@@ -181,7 +181,7 @@ class Rendering(unittest.TestCase):
         self.assertNotIn('/** = authcBasic', [line.strip() for line in shiro_policy.splitlines()])
 
         swagger = ingresses['vocabs-platform-dev-vocabs-vocabsapi']
-        self.assertEqual(swagger['spec']['ingressClassName'], 'traefik')
+        self.assertEqual(swagger['spec']['ingressClassName'], 'nginx')
         self.assertEqual(swagger['spec']['rules'][0]['host'], 'vocabsapi-vp-dev.acdh-dev.oeaw.ac.at')
         self.assertEqual(swagger['spec']['tls'][0]['secretName'], 'vocabsapi-vp-dev-tls')
         self.assertEqual(swagger['metadata']['annotations']['cert-manager.io/cluster-issuer'], 'acdh-prod')
@@ -200,7 +200,7 @@ class Rendering(unittest.TestCase):
         self.assertEqual(paths[1]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-skosmos')
         self.assertEqual(paths[2]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-swagger')
         exact = ingresses['vocabs-platform-dev-vocabs-vocabsapi-exact']
-        self.assertEqual(exact['spec']['ingressClassName'], 'traefik')
+        self.assertEqual(exact['spec']['ingressClassName'], 'nginx')
         self.assertEqual(exact['spec']['rules'][0]['host'], swagger['spec']['rules'][0]['host'])
         self.assertEqual(exact['spec']['tls'], swagger['spec']['tls'])
         self.assertNotIn('cert-manager.io/cluster-issuer', exact['metadata']['annotations'])
@@ -213,7 +213,7 @@ class Rendering(unittest.TestCase):
              ('/rest/v1/', 'Exact', 'vocabs-platform-dev-vocabs-gateway')],
         )
         downloads = ingresses['vocabs-platform-dev-vocabs-downloads']
-        self.assertEqual(downloads['spec']['ingressClassName'], 'traefik')
+        self.assertEqual(downloads['spec']['ingressClassName'], 'nginx')
         self.assertEqual(downloads['spec']['rules'][0]['host'], 'vocabs-downloads-vp-dev.acdh-dev.oeaw.ac.at')
         self.assertEqual(downloads['spec']['tls'][0]['secretName'], 'vocabs-downloads-vp-dev-tls')
         self.assertEqual(downloads['metadata']['annotations']['cert-manager.io/cluster-issuer'], 'acdh-prod')
