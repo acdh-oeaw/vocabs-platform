@@ -9,10 +9,8 @@ installation. No credentials belong here. Supply existing Kubernetes Secret name
 for image pulls (`imagePullSecrets`, and upstream `global.imagePullSecrets`) and
 TLS. Vinyl Cache is managed directly by the parent chart and does not expose
 management credentials through environment values.
-The development file uses class `nginx` on all four Ingress settings: this is
-the class that works through this cluster's HAProxy → Traefik setup. The class
-name does not identify which controller handles it. See the
-[routing checks](../docs/traefik.md) before changing the class.
+The development file sets all four Ingress classes to `traefik`; verify the
+actual IngressClass and certificate solver using [the migration guide](../docs/traefik.md).
 Fuseki's supplied query-only assembler needs no public administration credentials.
 
 Use one environment file and one Helm release per namespace. Choose distinct

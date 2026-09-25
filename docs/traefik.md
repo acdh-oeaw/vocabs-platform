@@ -1,27 +1,24 @@
-# RKE2 Traefik Ingress routing
+# Traefik Ingress migration
 
 The development release uses Kubernetes `Ingress` resources with
-`ingressClassName: nginx`. In this cluster HAProxy forwards to RKE2 Traefik,
-and the `nginx` class serves the development hosts; switching the same routes
-to class `traefik` returned HTTP 404. RKE2 can configure Traefik with an
-Ingress NGINX compatibility provider. Check the live IngressClass/controller
-configuration before assuming which provider handles a class. The gateway's
-Nginx container still handles application redirects inside its Pod.
+`ingressClassName: traefik`. Traefik must run the Kubernetes Ingress provider and
+watch the release namespace. The gateway still runs its own Nginx container for
+application redirects; changing the cluster Ingress controller does not replace
+that container.
 
 ## 1. Check the cluster (read-only)
 
-Run from the repository root. Compare the class and host of a working Ingress
-with these values. Confirm that `acdh-prod` can renew certificates, and that
-the current release and TLS Secrets exist. Keep class `nginx` until another
-class has been tested end to end through HAProxy.
+Run from the repository root. Confirm the IngressClass is managed by Traefik,
+that `acdh-prod` can renew certificates through the new controller, and that
+the current release and TLS Secrets exist. If your IngressClass has another
+name, update **all four** `className` entries in the environment file first.
 
 ```bash
 export NS=vocabs-platform-dev
 export RELEASE=vocabs-platform-dev
 export VALUES=environments/vocabs-platform-dev.yaml
 kubectl get ingressclass
-kubectl get ingressclass nginx -o yaml
-kubectl get ingress -A -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,CLASS:.spec.ingressClassName,HOST:.spec.rules[0].host'
+kubectl get ingressclass traefik -o yaml
 kubectl get clusterissuer acdh-prod -o yaml
 kubectl -n "$NS" get ingress,certificate
 kubectl -n "$NS" get secret vocabs-platform-dev-tls vocabsapi-vp-dev-tls \
@@ -30,11 +27,11 @@ helm list -n "$NS"
 helm get values "$RELEASE" -n "$NS" -o yaml
 ```
 
-Verify the issuer's HTTP-01 solver class and the route to the correct Traefik
-entrypoint before relying on renewal. The existing
-`cert-manager.io/cluster-issuer` annotations and TLS Secret names are retained.
-Do not add native Traefik routing annotations solely because Traefik runs in
-the cluster: confirm which provider processes this IngressClass first.
+Verify the issuer's HTTP-01 solver IngressClass and Traefik HTTP entrypoint
+before relying on renewal. The existing `cert-manager.io/cluster-issuer`
+annotations and TLS Secret names are retained. If Traefik uses nondefault
+entrypoints, set the correct `traefik.ingress.kubernetes.io/router.entrypoints`
+annotation in each enabled Ingress's `annotations` values; do not guess names.
 For environments with NetworkPolicy enabled, replace
 `networkPolicy.gatewayIngressPeers` with selectors for the **actual Traefik
 Pods and namespace**. Swagger's Skosmos backend needs matching peers in
@@ -45,11 +42,13 @@ topology before enabling the policies.
 ## 2. Review the rendered change (read-only)
 
 The API host has two Ingress objects. One serves Swagger and `/rest/v1/` API
-calls; the second serves exact `/rest/v1` and `/rest/v1/` gateway redirects.
-The extra Ingress carries a priority annotation for Traefik's native Ingress
-provider; the NGINX compatibility provider may handle precedence differently,
-so test both exact URLs and an API subpath. Only the first Ingress has the
-cert-manager issuer annotation. Both use the same TLS host and Secret.
+calls; the second gives the exact `/rest/v1` and `/rest/v1/` gateway redirects
+higher Traefik priority. Traefik does not guarantee an exact path outranks an
+overlapping prefix without explicit priority. Only the first Ingress has the
+cert-manager issuer annotation, avoiding competing Certificate ownership for
+their shared TLS Secret. Both present the same TLS host and Secret.
+The chart reserves `traefik.ingress.kubernetes.io/router.priority` on the
+Swagger host so the exact redirects cannot silently lose precedence.
 
 ```bash
 helm lint ./chart/vocabs -f "$VALUES"
@@ -66,7 +65,7 @@ for item in yaml.safe_load_all(open(sys.argv[1])):
 PY
 ```
 
-Expect five Ingress objects, all on `nginx`: gateway, downloads, Fuseki,
+Expect five Ingress objects, all on `traefik`: gateway, downloads, Fuseki,
 Swagger and its exact redirect routes. Compare hosts, TLS Secrets and backend
 Services against the current release. Keep the existing Redmine IDs.
 
@@ -106,6 +105,5 @@ EndpointSlices, Traefik logs and the relevant Certificate. A working Pod alone
 does not prove that the new IngressClass, DNS, TLS or routing is correct.
 
 See the [Traefik Kubernetes Ingress provider](https://doc.traefik.io/traefik/reference/install-configuration/providers/kubernetes/kubernetes-ingress/),
-[RKE2 migration guide](https://docs.rke2.io/reference/ingress_migration),
-[Ingress NGINX compatibility provider](https://doc.traefik.io/traefik/reference/install-configuration/providers/kubernetes/kubernetes-ingress-nginx/)
+[Ingress annotations](https://doc.traefik.io/traefik/reference/routing-configuration/kubernetes/ingress/)
 and [cert-manager Ingress annotations](https://cert-manager.io/docs/usage/ingress/).

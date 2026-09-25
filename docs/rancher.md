@@ -122,7 +122,7 @@ global:
   publicUrl: https://vocabs-platform-dev.acdh-dev.oeaw.ac.at/
 ingress:
   enabled: true
-  className: nginx # Class accepted by the Traefik instance behind this cluster's HAProxy.
+  className: traefik
   tls:
     enabled: true
     secretName: CHANGE-ME-TLS-SECRET
