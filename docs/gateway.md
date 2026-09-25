@@ -35,8 +35,9 @@ the authority: for `https://vocabs.example.org:8443/` it is
 TLS-enabled ingress requires HTTPS.
 
 Select the ingress class, TLS Secret and gateway StorageClass for your cluster.
-The development values use Traefik; see [Traefik migration](traefik.md) for
-IngressClass, certificate and routing checks. The Nginx container described
+The development values use class `nginx` through this cluster's HAProxy →
+Traefik setup; see [RKE2 routing checks](traefik.md) for IngressClass,
+certificate and routing checks. The Nginx container described
 below runs inside the gateway Pod and still handles redirects.
 Configure the ingress-controller peers explicitly, for example using your own
 namespace and pod labels:
