@@ -111,12 +111,13 @@ has passed until the updated chart is deployed.
 The live Skosmos 3.3 endpoint was verified at the public application host:
 `GET /swagger.json` returned HTTP 200 with a Swagger 2.0 JSON document. The
 document has `basePath: /rest/v1` and no `host` or `servers` field, so Swagger UI
-uses its current origin for Try it out requests; the `/rest/v1` Ingress path
-therefore sends those requests to Skosmos rather than the UI container. The
+uses its current origin for Try it out requests. The `/rest/v1/` prefix routes
+those requests to Skosmos. An additional Ingress gives the exact `/rest/v1`
+and `/rest/v1/` redirects to the gateway higher priority under Traefik. The
 document itself is not rewritten, so its API base metadata remains unchanged.
 
 NetworkPolicy remains disabled in the development pilot. If enabled later,
-explicit policy must allow the NGINX ingress controller to reach Fuseki,
+explicit policy must allow the Traefik ingress controller to reach Fuseki,
 Swagger, and Skosmos for the `/swagger.json` and `/rest/v1` proxy paths.
 
 Skosmos uses a dependency-aware probe split. Its liveness probe is

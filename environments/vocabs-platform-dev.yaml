@@ -44,7 +44,7 @@ fuseki:
   ingress:
     enabled: true
     host: jena-vp-dev.acdh-cluster-2.arz.oeaw.ac.at
-    className: nginx
+    className: traefik
     annotations:
       cert-manager.io/cluster-issuer: acdh-prod
     redmineId: "12346"
@@ -61,7 +61,7 @@ data:
       retain: true
 ingress:
   enabled: true
-  className: nginx
+  className: traefik
   redmineId: "12347"
   annotations:
     cert-manager.io/cluster-issuer: acdh-prod
@@ -75,7 +75,7 @@ swagger:
     enabled: true
     allowAnubisBypass: true
     host: vocabsapi-vp-dev.acdh-dev.oeaw.ac.at
-    className: nginx
+    className: traefik
     annotations:
       cert-manager.io/cluster-issuer: acdh-prod
     redmineId: "12349"
@@ -95,7 +95,7 @@ downloads:
   ingress:
     enabled: true
     host: vocabs-downloads-vp-dev.acdh-dev.oeaw.ac.at
-    className: nginx
+    className: traefik
     redmineId: "12350" # Add real Redmine ID-om.
     annotations:
       cert-manager.io/cluster-issuer: acdh-prod
