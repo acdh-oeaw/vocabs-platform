@@ -283,7 +283,7 @@ the image. Their composition is adapted without importing Foundation markup.
   `main-content-top` slot. Therefore its native About h1 remains above the hero:
   placing the banner literally before that heading would require DOM movement
   or a page override. This small intentional difference preserves reading order.
-  The concise hero summary avoids repeating the detailed service paragraph.
+  Both page heroes use the same service description as the former production site.
 - Shared `.acdh-hero` styling uses the existing image and contrast-tested overlay
   and text tokens. Height follows content; no fixed hero height is introduced.
 - Nested upstream About/Feedback container padding is reduced from 8rem. About

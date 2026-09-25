@@ -135,6 +135,10 @@ class SkosmosTheme(unittest.TestCase):
         for hero in (landing, about):
             self.assertIn('class="acdh-hero"', hero)
             self.assertIn("Vocabs services", hero)
+        self.assertEqual(
+            re.search(r"<p>(.*?)</p>", landing, re.S).group(1),
+            re.search(r"<p>(.*?)</p>", about, re.S).group(1),
+        )
         old = (slots / "landing-end/10-acdh-intro.twig").read_text()
         self.assertNotIn("<", old)
         css = (BRANDING / "css/acdh-vocabs.css").read_text()
