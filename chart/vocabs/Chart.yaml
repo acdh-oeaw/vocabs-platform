@@ -2,7 +2,7 @@ apiVersion: v2
 name: vocabs
 description: ACDH Vocabs platform — Anubis/Nginx gateway, Skosmos, Vinyl Cache and single-writer Fuseki
 type: application
-version: 0.2.0-dev.21
+version: 0.2.0-dev.22
 appVersion: "2026.09.0-dev"
 kubeVersion: ">=1.28.0-0"
 home: https://github.com/acdh-oeaw/vocabs-platform
