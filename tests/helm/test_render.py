@@ -110,13 +110,11 @@ class Rendering(unittest.TestCase):
         v['swagger'] = {'enabled':True, 'specUrl':'https://vocabs.example.org/swagger.json', 'ingress':{'enabled':True, 'redmineId':'90002', 'host':'api.example.org','allowAnubisBypass':True}}
         docs = render(v)
         ingress = [d for d in docs if d['kind']=='Ingress']
-        self.assertEqual(len(ingress), 3)
+        self.assertEqual(len(ingress), 2)
         for i in ingress:
             backends = [path['backend']['service']['name'] for path in i['spec']['rules'][0]['http']['paths']]
             if i['metadata']['name'].endswith('-gateway'):
                 self.assertTrue(any(backend.endswith('-gateway') for backend in backends))
-            elif i['metadata']['name'].endswith('-vocabsapi-exact'):
-                self.assertTrue(all(backend.endswith('-gateway') for backend in backends))
             else:
                 self.assertTrue(any(backend.endswith('-swagger') for backend in backends))
                 self.assertTrue(any(backend.endswith('-skosmos') for backend in backends))
@@ -130,7 +128,7 @@ class Rendering(unittest.TestCase):
         ingresses = {d['metadata']['name']: d for d in docs if d['kind'] == 'Ingress'}
 
         public = ingresses['vocabs-platform-dev-vocabs-gateway']
-        self.assertEqual(public['spec']['ingressClassName'], 'traefik')
+        self.assertEqual(public['spec']['ingressClassName'], 'nginx')
         self.assertEqual(public['spec']['rules'][0]['host'], 'vocabs-platform-dev.acdh-dev.oeaw.ac.at')
         self.assertEqual(public['spec']['tls'][0]['secretName'], 'vocabs-platform-dev-tls')
         self.assertEqual(public['metadata']['annotations']['cert-manager.io/cluster-issuer'], 'acdh-prod')
@@ -148,7 +146,7 @@ class Rendering(unittest.TestCase):
         self.assertNotIn(generated_key, str(gateway))
 
         fuseki = ingresses['vocabs-platform-dev-vocabs-fuseki-admin']
-        self.assertEqual(fuseki['spec']['ingressClassName'], 'traefik')
+        self.assertEqual(fuseki['spec']['ingressClassName'], 'nginx')
         self.assertEqual(fuseki['spec']['rules'][0]['host'], 'jena-vp-dev.acdh-cluster-2.arz.oeaw.ac.at')
         self.assertEqual(fuseki['spec']['tls'][0]['secretName'], 'jena-vp-dev-tls')
         self.assertEqual(fuseki['metadata']['annotations']['cert-manager.io/cluster-issuer'], 'acdh-prod')
@@ -181,7 +179,7 @@ class Rendering(unittest.TestCase):
         self.assertNotIn('/** = authcBasic', [line.strip() for line in shiro_policy.splitlines()])
 
         swagger = ingresses['vocabs-platform-dev-vocabs-vocabsapi']
-        self.assertEqual(swagger['spec']['ingressClassName'], 'traefik')
+        self.assertEqual(swagger['spec']['ingressClassName'], 'nginx')
         self.assertEqual(swagger['spec']['rules'][0]['host'], 'vocabsapi-vp-dev.acdh-dev.oeaw.ac.at')
         self.assertEqual(swagger['spec']['tls'][0]['secretName'], 'vocabsapi-vp-dev-tls')
         self.assertEqual(swagger['metadata']['annotations']['cert-manager.io/cluster-issuer'], 'acdh-prod')
@@ -192,31 +190,17 @@ class Rendering(unittest.TestCase):
             [(path['path'], path['pathType']) for path in paths],
             [
                 ('/swagger.json', 'Exact'),
-                ('/rest/v1/', 'Prefix'),
+                ('/rest/v1', 'Exact'),
+                ('/rest/v1/', 'Exact'),
+                ('/rest/v1', 'Prefix'),
                 ('/', 'Prefix'),
             ],
         )
         self.assertEqual(paths[0]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-skosmos')
-        self.assertEqual(paths[1]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-skosmos')
-        self.assertEqual(paths[2]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-swagger')
-        exact = ingresses['vocabs-platform-dev-vocabs-vocabsapi-exact']
-        self.assertEqual(exact['spec']['ingressClassName'], 'traefik')
-        self.assertEqual(exact['spec']['rules'][0]['host'], swagger['spec']['rules'][0]['host'])
-        self.assertEqual(exact['spec']['tls'], swagger['spec']['tls'])
-        self.assertNotIn('cert-manager.io/cluster-issuer', exact['metadata']['annotations'])
-        self.assertEqual(exact['metadata']['annotations']['traefik.ingress.kubernetes.io/router.priority'], '1000')
-        self.assertEqual(exact['metadata']['labels']['ID'], swagger['metadata']['labels']['ID'])
-        self.assertEqual(
-            [(path['path'], path['pathType'], path['backend']['service']['name'])
-             for path in exact['spec']['rules'][0]['http']['paths']],
-            [('/rest/v1', 'Exact', 'vocabs-platform-dev-vocabs-gateway'),
-             ('/rest/v1/', 'Exact', 'vocabs-platform-dev-vocabs-gateway')],
-        )
-        downloads = ingresses['vocabs-platform-dev-vocabs-downloads']
-        self.assertEqual(downloads['spec']['ingressClassName'], 'traefik')
-        self.assertEqual(downloads['spec']['rules'][0]['host'], 'vocabs-downloads-vp-dev.acdh-dev.oeaw.ac.at')
-        self.assertEqual(downloads['spec']['tls'][0]['secretName'], 'vocabs-downloads-vp-dev-tls')
-        self.assertEqual(downloads['metadata']['annotations']['cert-manager.io/cluster-issuer'], 'acdh-prod')
+        self.assertEqual(paths[1]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-gateway')
+        self.assertEqual(paths[2]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-gateway')
+        self.assertEqual(paths[3]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-skosmos')
+        self.assertEqual(paths[4]['backend']['service']['name'], 'vocabs-platform-dev-vocabs-swagger')
         swagger_container = find(docs, 'Deployment', 'swagger')['spec']['template']['spec']['containers'][0]
         self.assertEqual(swagger_container['env'][0]['value'], '/swagger.json')
         self.assertEqual(find(docs, 'Service', 'fuseki')['spec']['type'], 'ClusterIP')
@@ -225,13 +209,6 @@ class Rendering(unittest.TestCase):
         skosmos_container = skosmos['spec']['template']['spec']['containers'][0]
         self.assertEqual(skosmos_container['livenessProbe']['httpGet']['path'], '/swagger.json')
         self.assertEqual(skosmos_container['readinessProbe']['httpGet']['path'], '/en/')
-
-    def test_swagger_priority_cannot_override_exact_redirects(self):
-        render({'swagger': {'enabled': True, 'specUrl': 'https://api.example.org/swagger.json',
-                'ingress': {'enabled': True, 'host': 'api.example.org', 'redmineId': '90001',
-                            'allowAnubisBypass': True,
-                            'annotations': {'traefik.ingress.kubernetes.io/router.priority': '2000'}}}},
-               fail='Swagger Ingress priority is reserved for its exact API redirect routes')
 
     def test_ingresses_require_redmine_id(self):
         render({

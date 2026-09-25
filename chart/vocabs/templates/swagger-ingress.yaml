@@ -1,7 +1,6 @@
 {{- $i := .Values.swagger.ingress -}}
 {{- if $i.enabled }}
 {{- if not .Values.swagger.enabled }}{{ fail "swagger must be enabled for its Ingress" }}{{ end }}
-{{- if hasKey $i.annotations "traefik.ingress.kubernetes.io/router.priority" }}{{ fail "Swagger Ingress priority is reserved for its exact API redirect routes" }}{{ end }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -31,47 +30,6 @@ spec:
                 name: {{ include "vocabs.fullname" . }}-skosmos
                 port:
                   number: {{ .Values.skosmos.service.port }}
-          - path: /rest/v1/
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ include "vocabs.fullname" . }}-skosmos
-                port:
-                  number: {{ .Values.skosmos.service.port }}
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ include "vocabs.fullname" . }}-swagger
-                port:
-                  number: 8080
----
-# Keep the exact API routes above the API prefix under Traefik's rule priorities.
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: {{ include "vocabs.fullname" . }}-vocabsapi-exact
-  labels:
-    {{- include "vocabs.labels" . | nindent 4 }}
-    ID: {{ required "Redmine ID is required when Swagger Ingress is enabled" $i.redmineId | quote }}
-  annotations:
-    {{- with (omit $i.annotations "cert-manager.io/cluster-issuer" "cert-manager.io/issuer" "traefik.ingress.kubernetes.io/router.priority") }}
-    {{- toYaml . | nindent 4 }}
-    {{- end }}
-    traefik.ingress.kubernetes.io/router.priority: "1000"
-spec:
-  {{- with $i.className }}
-  ingressClassName: {{ . | quote }}
-  {{- end }}
-  {{- if $i.tls.enabled }}
-  tls:
-    - hosts: [{{ required "Ingress host is required" $i.host | quote }}]
-      secretName: {{ required "TLS secretName is required when TLS is enabled" $i.tls.secretName | quote }}
-  {{- end }}
-  rules:
-    - host: {{ required "Ingress host is required" $i.host | quote }}
-      http:
-        paths:
           - path: /rest/v1
             pathType: Exact
             backend:
@@ -86,4 +44,18 @@ spec:
                 name: {{ include "vocabs.fullname" . }}-gateway
                 port:
                   number: {{ .Values.gateway.service.port }}
+          - path: /rest/v1
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "vocabs.fullname" . }}-skosmos
+                port:
+                  number: {{ .Values.skosmos.service.port }}
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "vocabs.fullname" . }}-swagger
+                port:
+                  number: 8080
 {{- end }}

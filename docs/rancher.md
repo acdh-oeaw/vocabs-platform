@@ -46,7 +46,7 @@ separate Helm dependency build. Concurrent releases are serialized.
   alone does not publish another package under an existing chart version.
 - Version bumps are explicit reviewed Git changes; CI never edits versions.
   `skip_existing: true` preserves existing releases instead of replacing assets.
-  The current version `0.2.0-dev.21` remains a prerelease.
+  The current version `0.2.0-dev.20` remains a prerelease.
 
 The publishing step uses only `secrets.GITHUB_TOKEN`, with no PAT, package-write,
 Actions-write, or OIDC permissions. Checkout credentials are not persisted.
@@ -122,7 +122,7 @@ global:
   publicUrl: https://vocabs-platform-dev.acdh-dev.oeaw.ac.at/
 ingress:
   enabled: true
-  className: traefik
+  className: nginx
   tls:
     enabled: true
     secretName: CHANGE-ME-TLS-SECRET
@@ -185,7 +185,7 @@ After reviewing values, a CLI equivalent is:
 
 ```bash
 helm upgrade --install vocabs-platform-dev acdh-vocabs/vocabs \
-  --version 0.2.0-dev.21 --namespace vocabs-platform-dev \
+  --version 0.2.0-dev.20 --namespace vocabs-platform-dev \
   -f environments/vocabs-platform-dev.yaml
 ```
 

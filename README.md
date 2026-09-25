@@ -142,8 +142,6 @@ external policies, signing-key Secret references and pilot requirements.
 
 ## Operations
 
-For the Kubernetes Ingress controller switch, see the [Traefik migration checks](docs/traefik.md).
-
 For routine imports, migrations, activation, rollback and troubleshooting, start
 with the [operator guide](docs/operator-guide.md). It uses the actual dev release
 name, generates reviewable values files and gives commands in execution order.
