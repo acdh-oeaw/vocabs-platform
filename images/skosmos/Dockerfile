@@ -1,5 +1,5 @@
 # Build context: repository root. Upstream web root verified at Skosmos v3.3.
-ARG SKOSMOS_UPSTREAM_TAG
+ARG SKOSMOS_UPSTREAM_TAG=v3.3
 FROM quay.io/natlibfi/skosmos:${SKOSMOS_UPSTREAM_TAG}
 COPY images/skosmos/apply-entity-accept.php /tmp/apply-entity-accept.php
 RUN php /tmp/apply-entity-accept.php \
