@@ -16,7 +16,6 @@ class SkosmosTheme(unittest.TestCase):
         self.assertIn("COPY branding/custom-templates/ /var/www/html/custom-templates/", dockerfile)
         self.assertIn("COPY branding/css/ /var/www/html/resource/css/acdh/", dockerfile)
         self.assertIn("COPY branding/images/ /var/www/html/resource/pics/acdh/", dockerfile)
-        self.assertIn("COPY branding/assets/fonts/ /var/www/html/resource/fonts/acdh/", dockerfile)
         self.assertNotRegex(dockerfile, r"COPY branding/(?:view|resource)/")
 
     def test_expected_assets_and_config_exist(self):
@@ -27,7 +26,6 @@ class SkosmosTheme(unittest.TestCase):
             "images/vocabs-intro-bg.jpg",
             "images/vocabs-editor.png",
             "images/vocabs-visualize.png",
-            "assets/fonts/FiraSans-Regular.woff",
         ]:
             path = BRANDING / relative
             self.assertTrue(path.is_file(), relative)
@@ -47,7 +45,7 @@ class SkosmosTheme(unittest.TestCase):
 
     def test_css_references_packaged_assets(self):
         css = (BRANDING / "css/acdh-vocabs.css").read_text()
-        self.assertIn("../../fonts/acdh/FiraSans-Regular.woff", css)
+        self.assertIn('--font-family: Roboto, "Helvetica Neue", Arial, sans-serif', css)
         self.assertIn("../../pics/acdh/vocabs-intro-bg.jpg", css)
         self.assertNotRegex(css, r"outline(?:-width|-style)?\s*:\s*(?:none|0(?:px)?|hidden)\b")
         logo = re.search(r"#skosmos-logo\s*\{([^}]+)\}", css).group(1)

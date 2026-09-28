@@ -31,7 +31,8 @@ the compatibility profile is changed by the source patch alone.
   amount of CSS needed for the v3.3 DOM.
 - `branding/custom-templates/` contains Skosmos 3 content-slot templates.
 - `branding/images/` contains ACDH-owned logo, favicon and About-page images.
-- `branding/assets/fonts/` contains the selected Fira Sans webfonts.
+- `branding/assets/fonts/` retains the earlier Fira Sans files in the source
+  tree; the current theme does not load or package them.
 - `images/skosmos/Dockerfile` copies the extension assets into the upstream
   v3.3 webroot. No runtime clone, download, postStart copy or writable shared
   webroot is used.
@@ -257,7 +258,7 @@ including the worst-case hero image background, rather than every cosmetic
 value. Keep visual QA for `/en/`, `/en/about`, `/en/feedback`, vocabulary home,
 concept, vocabulary search and global search: one ACDH header identity, no
 upstream logo, turquoise search accents, readable white hero copy, light footer,
-and keyboard focus. Responsive structure, Fira Sans, the empty-state wording,
+and keyboard focus. Responsive structure, the empty-state wording,
 and the compact two-column layout remain Skosmos 3 adaptations. No versions
 are changed by this palette pass and nothing is published.
 
@@ -336,3 +337,16 @@ Rancher QA still needs actual search results, language/vocabulary selection,
 empty/populated data, keyboard navigation and 200% browser zoom across landing,
 About, Feedback and vocabulary pages. Palette, header identity branching and
 footer composition are unchanged; no cluster deployment is performed.
+
+## Typography matching the previous production site (r12)
+
+The previous production theme applies the Roboto / Helvetica Neue / Arial
+stack across the interface. Both Skosmos 3 font variables now use that stack,
+without a global `*` rule that would override icon fonts. The old Fira Sans
+webfonts are no longer referenced by CSS or copied into the image.
+
+Skosmos 3 sets main headings and vocabulary links to bold. The ACDH stylesheet
+sets main h1/h2 headings to 500 and vocabulary, concept, search and error-page
+links to 400, matching the lighter production hierarchy. The service paragraph
+in the shared landing/About hero uses 300. Font sizes and page layout remain
+unchanged; compare real pages after publishing `3.3-r12`.
