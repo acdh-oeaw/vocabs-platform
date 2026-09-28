@@ -3,6 +3,19 @@ entries:
   vocabs:
   - apiVersion: v2
     appVersion: 2026.09.0-dev
+    created: "2026-09-28T06:21:33.412605769Z"
+    description: ACDH Vocabs platform — Anubis/Nginx gateway, Skosmos, Vinyl Cache
+      and single-writer Fuseki
+    digest: 85c715b7ac3b42e0e95bba22b1812045f639ce7bd69e6174162ec04196603330
+    home: https://github.com/acdh-oeaw/vocabs-platform
+    kubeVersion: '>=1.28.0-0'
+    name: vocabs
+    type: application
+    urls:
+    - https://github.com/acdh-oeaw/vocabs-platform/releases/download/vocabs-0.2.0-dev.26/vocabs-0.2.0-dev.26.tgz
+    version: 0.2.0-dev.26
+  - apiVersion: v2
+    appVersion: 2026.09.0-dev
     created: "2026-09-25T12:53:25.13710916Z"
     description: ACDH Vocabs platform — Anubis/Nginx gateway, Skosmos, Vinyl Cache
       and single-writer Fuseki
@@ -404,4 +417,4 @@ entries:
     urls:
     - https://github.com/acdh-oeaw/vocabs-platform/releases/download/vocabs-0.2.0-dev/vocabs-0.2.0-dev.tgz
     version: 0.2.0-dev
-generated: "2026-09-25T12:53:25.137670709Z"
+generated: "2026-09-28T06:21:33.412924365Z"
