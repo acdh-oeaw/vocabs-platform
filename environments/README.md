@@ -11,8 +11,11 @@ TLS. Vinyl Cache is managed directly by the parent chart and does not expose
 management credentials through environment values.
 Fuseki's supplied query-only assembler needs no public administration credentials.
 
-Use one environment file and one Helm release per namespace. Choose distinct
-PVC names if running more than one release in a namespace. Keep the active claim,
+Use one environment file and one Helm release per namespace. Set the
+Ingress class deliberately for each environment. The development file uses
+`traefik`; verify its IngressClass and certificate solver using the
+[Traefik checks](../docs/traefik.md) before an upgrade.
+Choose distinct PVC names if running more than one release in a namespace. Keep the active claim,
 revision and Vinyl Cache revision annotation synchronized; activation examples show
 all three. Never persist an import-enabled overlay as normal release values.
 Commit safe configuration metadata; keep private local values in ignored
