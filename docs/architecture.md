@@ -1,12 +1,13 @@
 # Architecture
 
-The public path is Ingress (TLS) → Gateway Service → Anubis :8080 → localhost
+The public path is Traefik Ingress (TLS) → Gateway Service → Anubis :8080 → localhost
 nginx-unprivileged :8081 → Skosmos → Vinyl Cache → Fuseki. Ingress is the external
 entry point; Anubis filters requests; Nginx handles routing, concept/DARIAH
 redirects, CORS and proxy headers; Skosmos serves vocabularies; Vinyl Cache caches
 SPARQL; Fuseki is the internal RDF database. Only Anubis has a public gateway
-Service port. There are no direct Skosmos or Vinyl Cache public ingresses; the
-optional Fuseki administrative Ingress is separately whitelisted. See
+Service port. The optional Swagger host has direct read-only Skosmos API routes;
+Vinyl Cache has no public Ingress. The optional Fuseki administrative Ingress
+uses Shiro authentication. See
 [the administrative endpoint runbook](admin-endpoints.md).
 
 The gateway is one namespaced Deployment with two non-root containers and a
@@ -34,7 +35,9 @@ host and TLS settings come from `downloads.ingress`, independently of
 
 Swagger's separate ingress is an explicit, documented exception that bypasses
 Anubis and requires swagger.ingress.allowAnubisBypass=true. It remains disabled
-by default. It does not provide another path to Skosmos or the database.
+by default. It routes `/swagger.json` and the `/rest/v1/` API prefix to
+Skosmos; exact `/rest/v1` redirects pass through the gateway. It does not
+route directly to the database.
 
 Skosmos can run two or more replicas. Its configuration is read-only and its Twig
 cache is local. Check any migrated plugins for shared/session state before

@@ -44,9 +44,11 @@ fuseki:
   ingress:
     enabled: true
     host: jena-vp-dev.acdh-cluster-2.arz.oeaw.ac.at
-    className: nginx
+    className: traefik
     annotations:
       cert-manager.io/cluster-issuer: acdh-prod
+      acme.cert-manager.io/http01-ingress-ingressclassname: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
     redmineId: "12346"
     tls:
       enabled: true
@@ -61,10 +63,13 @@ data:
       retain: true
 ingress:
   enabled: true
-  className: nginx
+  className: traefik
   redmineId: "12347"
   annotations:
     cert-manager.io/cluster-issuer: acdh-prod
+    acme.cert-manager.io/http01-ingress-ingressclassname: traefik
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.middlewares: kube-system-global-error-pages@kubernetescrd
   tls:
     enabled: true
     secretName: vocabs-platform-dev-tls
@@ -75,9 +80,11 @@ swagger:
     enabled: true
     allowAnubisBypass: true
     host: vocabsapi-vp-dev.acdh-dev.oeaw.ac.at
-    className: nginx
+    className: traefik
     annotations:
       cert-manager.io/cluster-issuer: acdh-prod
+      acme.cert-manager.io/http01-ingress-ingressclassname: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
     redmineId: "12349"
     tls:
       enabled: true
@@ -95,10 +102,12 @@ downloads:
   ingress:
     enabled: true
     host: vocabs-downloads-vp-dev.acdh-dev.oeaw.ac.at
-    className: nginx
+    className: traefik
     redmineId: "12350" # Add real Redmine ID-om.
     annotations:
       cert-manager.io/cluster-issuer: acdh-prod
+      acme.cert-manager.io/http01-ingress-ingressclassname: traefik
+      traefik.ingress.kubernetes.io/router.tls: "true"
     tls:
       enabled: true
       secretName: vocabs-downloads-vp-dev-tls

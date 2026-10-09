@@ -35,6 +35,8 @@ the authority: for `https://vocabs.example.org:8443/` it is
 TLS-enabled ingress requires HTTPS.
 
 Select the ingress class, TLS Secret and gateway StorageClass for your cluster.
+The development values use `traefik`; see the [Traefik checks](traefik.md).
+The Nginx container inside the gateway Pod still handles application redirects.
 Configure the ingress-controller peers explicitly, for example using your own
 namespace and pod labels:
 
@@ -203,7 +205,8 @@ Skosmos route; plan the controller reconciliation interval.
 Swagger remains separately configurable but a separate Swagger ingress bypasses
 Anubis. It defaults off and rendering requires explicit
 `swagger.ingress.allowAnubisBypass: true` to enable that path. This exception is
-for Swagger UI only; it cannot create a direct Skosmos/Vinyl Cache ingress. The
-development Swagger and Fuseki administrative hosts are private DNS names and
-are restricted by the NGINX source CIDRs documented in
-[admin-endpoints.md](admin-endpoints.md).
+also used for `/swagger.json` and `/rest/v1/` API requests directly to Skosmos.
+It does not expose Vinyl Cache or Fuseki. The development Swagger and Fuseki
+administrative hosts use separate DNS names; review their actual network
+reachability and Shiro protection. No ingress IP allowlist is installed by
+the chart. See [admin-endpoints.md](admin-endpoints.md).
